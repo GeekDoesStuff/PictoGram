@@ -1,0 +1,22 @@
+#linkDiv, #errorDiv, #imageControls {
+    display: none;
+}
+
+#preview {
+    max-width: 100%;
+    background: #fff;
+    border: 1px solid #666;
+    image-rendering: pixelated;
+}
+
+#cropCanvas {
+    max-width: 100%;
+    border: 1px solid #666;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+#dropZone.dragover {
+    outline: 3px dashed #0d6efd;
+    outline-offset: 4px;
+}

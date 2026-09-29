@@ -1,0 +1,11 @@
+#msgDiv {
+    display: none;
+}
+
+#nonoDiv {
+    overflow-x: auto;
+}
+
+#timerDiv {
+    font-variant-numeric: tabular-nums;
+}
