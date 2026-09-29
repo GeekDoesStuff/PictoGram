@@ -1,9 +1,0 @@
-body {
-    background-color: #2e2e2e; /* Dark grey color */
-    color: white; /* Ensures text is readable */
-    font-family: Arial, sans-serif; /* Sets a clean font */
-}
-
-#msgDiv {
-    display: none;
-}
