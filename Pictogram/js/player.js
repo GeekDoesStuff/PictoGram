@@ -2,6 +2,7 @@ import * as nono from './util/nono-utils.js';
 import * as idParser from './util/id-parser.js';
 import { BOARD_STYLES, buildPalette } from './util/board-styles.js';
 import { loadSettings, saveSettings, currentTheme, applyTheme, setupThemeButton } from './util/settings.js';
+import { setupNonModalPanel, setupTooltips } from '../../shared/gdp-ui.js';
 
 const sketch = (p, id) => {
     const ACTION_TYPE = {
@@ -117,6 +118,9 @@ const sketch = (p, id) => {
         applyTheme();
         setupThemeButton(document.getElementById('themeBtn'), applyPalette);
         applyPalette();
+
+        setupNonModalPanel(document.getElementById('settingsDrawer'), document.getElementById('settingsBtn'));
+        setupTooltips();
     }
 
     function applyPalette() {
@@ -426,7 +430,7 @@ const sketch = (p, id) => {
 
             if(numHints == 0) { // empty row
                 p.noStroke();
-                p.fill(...palette.hintDone);
+                p.fill(...palette.textMuted);
                 p.textSize(cellSize * 0.9);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.text(0, -0.5 * cellSize, (row + 0.5) * cellSize + 2);
@@ -437,7 +441,7 @@ const sketch = (p, id) => {
                 let checked = gridHorHints[row][i] == 1;
 
                 p.noStroke();
-                p.fill(...(checked ? palette.hintDone : palette.hint));
+                p.fill(...(checked ? palette.textMuted : palette.text));
                 p.textSize(hint < 10 ? cellSize * 0.9 : cellSize * 0.7);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.text(hint, -(numHints - i - 0.5) * cellSize, (row + 0.5) * cellSize + 2);
@@ -452,7 +456,7 @@ const sketch = (p, id) => {
 
             if(numHints == 0) { // empty column
                 p.noStroke();
-                p.fill(...palette.hintDone);
+                p.fill(...palette.textMuted);
                 p.textSize(cellSize * 0.9);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.text(0, (col + 0.5) * cellSize, -0.5 * cellSize + 2);
@@ -463,7 +467,7 @@ const sketch = (p, id) => {
                 let checked = gridVerHints[col][i] == 1;
 
                 p.noStroke();
-                p.fill(...(checked ? palette.hintDone : palette.hint));
+                p.fill(...(checked ? palette.textMuted : palette.text));
                 p.textSize(hint < 10 ? cellSize * 0.9 : cellSize * 0.7);
                 p.textAlign(p.CENTER, p.CENTER);
                 p.text(hint, (col + 0.5) * cellSize, -(numHints - i - 0.5) * cellSize + 2);

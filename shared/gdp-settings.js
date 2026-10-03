@@ -19,25 +19,50 @@ export function createSettingsStore(key, defaults) {
     return { load, save };
 }
 
-// Theme helpers work on any store that has a `theme` field: null/undefined follows the
+// Theme helpers work on any store that has a `theme` field: null/undefined/'auto' follows the
 // device's preference, otherwise 'light' or 'dark'.
 
-export function currentTheme(store) {
-    const s = store.load();
-    if (s.theme === 'light' || s.theme === 'dark') return s.theme;
+// The device's own preference right now, regardless of what's saved.
+function devicePreference() {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+// What the saved theme choice actually is: 'auto', 'light', or 'dark'.
+export function themeMode(store) {
+    const t = store.load().theme;
+    return (t === 'light' || t === 'dark') ? t : 'auto';
+}
+
+// What theme is actually shown right now (resolves 'auto' against the device).
+export function currentTheme(store) {
+    const mode = themeMode(store);
+    return mode === 'auto' ? devicePreference() : mode;
 }
 
 export function applyTheme(store) {
     document.documentElement.setAttribute('data-bs-theme', currentTheme(store));
 }
 
-// Wires a button that switches between light and dark. onChange(theme) is called after each switch.
+// Wires a button that cycles Auto -> (the theme opposite the device's current preference) ->
+// (back to the device's preference) -> Auto -> ... so every click visibly changes the page,
+// even starting from Auto. onChange(theme) is called after each switch.
 export function setupThemeButton(store, button, onChange = () => {}) {
-    const label = () => { button.textContent = currentTheme(store) === 'dark' ? '☾ Dark theme' : '☀ Light theme'; };
+    const label = () => {
+        const mode = themeMode(store);
+        const shown = currentTheme(store);
+        const icon = shown === 'dark' ? '☾' : '☀';
+        const name = mode === 'auto' ? `Auto (${shown})` : (shown === 'dark' ? 'Dark' : 'Light');
+        button.textContent = `${icon} ${name} theme`;
+    };
     label();
     button.addEventListener('click', () => {
-        store.save({ theme: currentTheme(store) === 'dark' ? 'light' : 'dark' });
+        const mode = themeMode(store);
+        const device = devicePreference();
+        const opposite = device === 'dark' ? 'light' : 'dark';
+        // auto -> opposite of the device's preference -> the device's own preference (explicit,
+        // won't silently follow the device anymore) -> back to auto. Three clicks, three states.
+        const next = mode === 'auto' ? opposite : (mode !== device ? device : 'auto');
+        store.save({ theme: next === 'auto' ? null : next });
         applyTheme(store);
         label();
         onChange(currentTheme(store));

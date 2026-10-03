@@ -3,6 +3,7 @@ import * as mathUtils from './util/math-utils.js';
 import * as img from './util/image-to-grid.js';
 import { makeUniquelySolvable } from './util/puzzle-repair.js';
 import { applyTheme, setupThemeButton } from './util/settings.js';
+import { setupTooltips } from '../../shared/gdp-ui.js';
 
 const SG_REGEX = /(?:https?:\/\/)?(?:www\.)?steamgifts\.com\/giveaway\/([a-zA-Z0-9]{5})\//;
 const RANDOM_MIN = 4;
@@ -35,6 +36,7 @@ let dragStart = null;
 document.addEventListener("DOMContentLoaded", () => {
     applyTheme();
     setupThemeButton($("themeBtn"));
+    setupTooltips();
 
     for (const [key, p] of Object.entries(img.PRESETS)) {
         const o = document.createElement("option");
@@ -180,14 +182,16 @@ function loadBlob(file) {
 
 const fullCrop = () => ({ x: 0, y: 0, w: state.src.w, h: state.src.h });
 
+// Dynamic, per-image notes — the (i) tooltip covers what each style generally does; this is
+// only for things that depend on THIS picture, so it stays empty most of the time.
 function presetNote() {
     if (!state.src) return "";
     const has = img.detectPreset(state.src) === "silhouette";
     if (state.preset === "silhouette" && !has)
-        return "No transparent or plain background found, so this picture is processed like a photo.";
-    if (state.preset === "silhouette") return "Uses the transparent background or the plain background colour to find the shape.";
-    if (state.preset === "lineart") return "Keeps thin dark lines. Hollow outlines are hard to make into puzzles; Silhouette works better for solid shapes.";
-    return "Boosts local contrast to bring out features. Works best on high-contrast pictures.";
+        return "No transparent or plain background found in this picture, so it's processed like a photo instead.";
+    if (state.preset === "lineart")
+        return "Note: a solid-coloured subject will come out as a hollow outline in this style.";
+    return "";
 }
 
 // ---------- crop ----------
@@ -209,6 +213,8 @@ function updateCropStatus() {
     if (!el) return;
     const label = { whole: "Using the whole image.", fit: "Cropped to fit the detected subject.", custom: "Using a custom crop." }[state.cropKind] || "";
     el.textContent = label;
+    const resetBtn = $("resetCropBtn");
+    if (resetBtn) resetBtn.style.display = state.cropKind === "whole" ? "none" : "";
 }
 
 function fitToSubject() {

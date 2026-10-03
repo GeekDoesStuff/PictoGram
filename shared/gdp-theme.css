@@ -92,6 +92,49 @@ body {
 }
 .gdp-hint-btn:hover { color: var(--gdp-fg); }
 
+/* Small circular (i) info button, for a Bootstrap tooltip explaining a control. */
+.gdp-info-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.1rem;
+    height: 1.1rem;
+    border-radius: 50%;
+    border: 1px solid var(--gdp-muted);
+    color: var(--gdp-muted);
+    background: none;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0;
+    cursor: help;
+}
+.gdp-info-btn:hover, .gdp-info-btn:focus {
+    color: var(--gdp-fg);
+    border-color: var(--gdp-fg);
+}
+
+/* A wider page shell for layouts that need real side-by-side columns (e.g. the creator). */
+.gdp-page-wide { max-width: 1100px; }
+
+/* Two columns on wide screens (e.g. source image next to its preview); stacks on narrow ones. */
+.gdp-cols-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+@media (max-width: 760px) {
+    .gdp-cols-2 { grid-template-columns: 1fr; }
+}
+
+/* A non-modal slide-out panel (see shared/gdp-ui.js): no dark backdrop, so pair this with
+   data-bs-backdrop="false" on the offcanvas element itself. */
+.gdp-panel-flush {
+    background: var(--gdp-panel);
+    border-left: 1px solid var(--gdp-panel-border);
+}
+
 @media (max-width: 420px) {
     .gdp-page { padding: 1rem 0.6rem 2.5rem; }
     .gdp-header h1 { font-size: 1.6rem; }

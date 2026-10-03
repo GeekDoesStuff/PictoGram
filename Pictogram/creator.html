@@ -8,12 +8,12 @@
 <script src="./js/creator.js" type="module"></script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="./shared/gdp-theme.css">
+<link rel="stylesheet" href="../shared/gdp-theme.css">
 <link rel="stylesheet" href="./styles/creator.css">
 <link rel="icon" href="./assets/favicon.ico" type="image/x-icon">
 </head>
 <body>
-<div class="gdp-page">
+<div class="gdp-page gdp-page-wide">
 
     <div class="gdp-header position-relative">
         <h1>Pictogram</h1>
@@ -43,52 +43,66 @@
             </div>
 
             <div id="imageControls" class="mt-3">
-                <div class="gdp-section-title">1. Choose the part to use</div>
-                <div class="form-text mb-1">Drag on the picture to select an area. Zooming in on the subject gives a much more recognisable result.</div>
-                <canvas id="cropCanvas" width="10" height="10"></canvas>
-                <div class="mt-2 mb-1">
-                    <span id="cropStatus" class="gdp-muted small d-block mb-1"></span>
-                    <div class="btn-group btn-group-sm" role="group">
-                        <button type="button" id="resetCropBtn" class="btn btn-outline-secondary">Use whole image</button>
-                        <button type="button" id="fitBtn" class="btn btn-outline-secondary">Fit to subject</button>
+                <div class="gdp-cols-2">
+                    <div>
+                        <div class="fw-bold">Your image</div>
+                        <div id="cropStatus" class="mb-1"></div>
+                        <canvas id="cropCanvas" width="10" height="10"></canvas>
+                        <div class="mt-2 d-flex align-items-center gap-2 flex-wrap">
+                            <span class="gdp-muted small">Drag on the image above to crop. Zooming in on the subject gives a much more recognisable puzzle.</span>
+                        </div>
+                        <div class="mt-1 d-flex gap-2">
+                            <button type="button" id="fitBtn" class="btn btn-sm btn-outline-secondary">Fit to subject</button>
+                            <button type="button" id="resetCropBtn" class="btn btn-sm btn-outline-secondary" style="display:none">Reset to whole image</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="fw-bold">Preview</div>
+                        <div class="gdp-muted small mb-1">This is the picture solvers will uncover.</div>
+                        <canvas id="preview" width="10" height="10" class="d-block"></canvas>
+                        <div id="previewStatus" class="mt-2 fw-bold"></div>
                     </div>
                 </div>
 
-                <div class="gdp-section-title">2. Choose a style</div>
-                <div class="row g-3 align-items-start mt-0">
+                <hr>
+
+                <div class="row g-3 align-items-start">
                     <div class="col-12 col-md-6">
-                        <label for="preset" class="form-label mb-0">Style</label>
+                        <label for="preset" class="form-label mb-0 d-flex align-items-center gap-1">Style
+                            <button type="button" class="gdp-info-btn" data-bs-toggle="tooltip" data-bs-html="true"
+                                title="Silhouette: best for sprites, icons and logos with a clean background — simple shapes, no shading.&#10;Line art: for drawings that are already just outlines — traces edges directly, so a solid-coloured subject comes out hollow.&#10;Photo: works on any picture, even without a plain background, by comparing brightness across nearby areas.">i</button>
+                        </label>
                         <select id="preset" class="form-select"></select>
                         <div id="presetNote" class="form-text"></div>
                     </div>
                     <div class="col-12 col-md-6">
-                        <label for="amount" class="form-label mb-0">Black amount: <span id="amountValue">40</span>%</label>
+                        <label for="amount" class="form-label mb-0 d-flex align-items-center gap-1">Black amount: <span id="amountValue">40</span>%
+                            <button type="button" class="gdp-info-btn" data-bs-toggle="tooltip"
+                                title="How much of the grid becomes black. Picked automatically for each picture — move it if the preview looks too sparse or too solid.">i</button>
+                        </label>
                         <input type="range" id="amount" class="form-range" min="5" max="95" value="40">
-                        <div class="form-text">How much of the grid becomes black. Adjusts automatically for each picture; move it if the preview looks too sparse or too solid.</div>
                     </div>
                     <div class="col-12 col-md-6">
-                        <label for="sharpen" class="form-label mb-0">Sharpen: <span id="sharpenValue">0</span>%</label>
+                        <label for="sharpen" class="form-label mb-0 d-flex align-items-center gap-1">Sharpen: <span id="sharpenValue">0</span>%
+                            <button type="button" class="gdp-info-btn" data-bs-toggle="tooltip"
+                                title="Makes edges crisper. Most useful for the Photo style.">i</button>
+                        </label>
                         <input type="range" id="sharpen" class="form-range" min="0" max="200" step="10" value="0">
-                        <div class="form-text">Makes edges crisper. Most useful for Photo style.</div>
                     </div>
                     <div class="col-12 col-md-6">
-                        <div class="form-check">
+                        <div class="form-check d-flex align-items-center gap-1">
                             <input class="form-check-input" type="checkbox" id="invert">
                             <label class="form-check-label" for="invert">Invert (swap black and white)</label>
                         </div>
-                        <div class="form-check">
+                        <div class="form-check d-flex align-items-center gap-1">
                             <input class="form-check-input" type="checkbox" id="lockAspect" checked>
                             <label class="form-check-label" for="lockAspect">Keep proportions</label>
+                            <button type="button" class="gdp-info-btn" data-bs-toggle="tooltip"
+                                title="With this on, changing rows also changes columns (and the other way round) to match your selected area's shape.">i</button>
                         </div>
-                        <div class="form-text">With proportions locked, changing rows also changes columns (and the other way round) to match your selected area's shape.</div>
                     </div>
                 </div>
                 <div id="sizeHint" class="form-text mt-2"></div>
-
-                <div class="gdp-section-title">3. Preview</div>
-                <canvas id="preview" width="10" height="10" class="d-block"></canvas>
-                <div id="previewStatus" class="mt-2 fw-bold"></div>
-                <div class="form-text">This is the picture solvers will uncover. Orange cells were adjusted so the puzzle has exactly one solution.</div>
             </div>
         </div>
 

@@ -1,6 +1,6 @@
 // Pictogram's own settings: wraps the shared Goblin Does Puzzles settings store with
 // Pictogram's storage key and defaults (board style, mark symbol, timer visibility).
-import { createSettingsStore, currentTheme as gdpCurrentTheme, applyTheme as gdpApplyTheme, setupThemeButton as gdpSetupThemeButton } from '../../shared/gdp-settings.js';
+import { createSettingsStore, currentTheme as gdpCurrentTheme, applyTheme as gdpApplyTheme, setupThemeButton as gdpSetupThemeButton } from '../../../shared/gdp-settings.js';
 
 const KEY = 'gdp-pictogram-settings';
 const OLD_KEY = 'pictogram-settings'; // settings saved before the shared-module rename

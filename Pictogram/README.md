@@ -5,6 +5,9 @@ filling in the right squares reveals an image. Solve it, and a hidden message ap
 
 **[Try the creator →](creator.html)**
 
+Part of the [Goblin Does Puzzles](../shared) project — see `../notes/overview.md` for how this
+fits together with other puzzles sharing the same codebase.
+
 ## What it does
 
 - **Make a puzzle from your own picture.** Upload an image, crop to the part you want, and
@@ -30,7 +33,8 @@ squares are marked) are in the ⚙ Settings panel.
 ## Creating a puzzle
 
 Open `creator.html`, upload a picture, and adjust a few options:
-- **Crop** to the subject so the puzzle isn't wasted on background.
+- **Crop** to the subject so the puzzle isn't wasted on background — Pictogram starts with the
+  whole image and cropping is optional.
 - **Style** — Silhouette for flat shapes/logos, Line art for outlines, Photo for shaded images.
 - **Grid size**, up to 60×60.
 - **Secret message**, shown once the puzzle is solved.
@@ -40,10 +44,17 @@ link, adjusting a few squares if needed so it is.
 
 ## Hosting your own copy
 
-Pictogram is a static site — no server or build step needed. Upload the contents of this folder to
-the root of a GitHub repository (not inside a subfolder), then turn on
-**Settings → Pages → Deploy from a branch → `main` / root**. Your creator will be at
-`https://<your-username>.github.io/<repo-name>/creator.html`.
+Pictogram is a static site — no server or build step needed, but it depends on the `shared/`
+folder one level above it, so upload this project alongside that folder, not on its own:
+
+```
+your-repo/
+├── shared/           ← required, from the Goblin Does Puzzles project
+└── Pictogram/         ← this folder
+```
+
+Then turn on **Settings → Pages → Deploy from a branch → `main` / root**. Your creator will be at
+`https://<your-username>.github.io/<repo-name>/Pictogram/creator.html`.
 
 ## Credits
 
@@ -56,4 +67,4 @@ extends with picture-based puzzles. Licensed under GPL-3.0.
 - `dev-tools/test-image.mjs` — tests the image-to-puzzle conversion on synthetic pictures.
 - `dev-tools/original-upstream/` — the original upstream files, kept for reference only.
 
-Run any test with `node dev-tools/<file>.mjs`.
+Run any test with `node dev-tools/<file>.mjs` from inside this folder.
