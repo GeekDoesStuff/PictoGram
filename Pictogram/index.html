@@ -18,6 +18,7 @@
 
     <div class="gdp-header">
         <h1>Pictogram</h1>
+        <div class="gdp-subtitle" id="sizeDiv" hidden><span id="sizeValue"></span> <span class="small">(columns × rows)</span></div>
         <div class="gdp-subtitle" id="timerDiv"></div>
     </div>
 
@@ -53,9 +54,9 @@
     <div id="instructions" class="gdp-panel p-3">
         <div class="gdp-section-title">How to play</div>
         <ul class="gdp-instructions-core mb-2">
-            <li>Left-click (or tap) a square to fill it</li>
-            <li>Right-click (or long-press) a square to mark it as empty — shown as an X or a dot</li>
-            <li>Click a row/column number to gray it out once you've used it, as a reminder</li>
+            <li><b>Computer:</b> left-click a square to fill it, right-click to mark it as empty (shown as an X or a dot)</li>
+            <li><b>Phone or tablet:</b> tap a square to cycle it — empty, then filled, then marked empty, then back to empty. There is no long-press</li>
+            <li>Click or tap a row/column number to gray it out once you've used it, as a reminder</li>
             <li>Fill the squares so each row and column matches its numbers, with at least one gap between groups</li>
         </ul>
 
@@ -64,7 +65,8 @@
         </button>
         <div class="collapse" id="moreControls">
             <ul class="mb-0 mt-2">
-                <li>Click-and-drag fills or marks a whole line of squares at once</li>
+                <li>Dragging across squares (mouse or finger) applies the same change to a whole line of squares at once</li>
+                <li>The keyboard shortcuts below need a physical keyboard, so they aren't available on most phones and tablets</li>
                 <li>Ctrl+Z / Left arrow — undo, Ctrl+Y / Right arrow — redo</li>
                 <li>+ / Up arrow — zoom in, − / Down arrow — zoom out</li>
                 <li>Shift+S — save a point, Shift+L — load your last saved point</li>

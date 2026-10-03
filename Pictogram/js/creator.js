@@ -5,7 +5,6 @@ import { makeUniquelySolvable } from './util/puzzle-repair.js';
 import { applyTheme, setupThemeButton } from './util/settings.js';
 import { setupTooltips } from '../../shared/gdp-ui.js';
 
-const SG_REGEX = /(?:https?:\/\/)?(?:www\.)?steamgifts\.com\/giveaway\/([a-zA-Z0-9]{5})\//;
 const RANDOM_MIN = 4;
 const RANDOM_MAX = 25;
 const MAX_WORKING_SIDE = 1200; // uploaded images are shrunk to this many pixels on the longer side for processing
@@ -46,6 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     $("createBtn").addEventListener("click", createNonogram);
+    $("secretText").addEventListener("input", updateSecretStatus);
+    updateSecretStatus();
     $("copyBtn").addEventListener("click", copyLink);
     document.querySelectorAll("input[name='mode']").forEach(el => el.addEventListener("change", applyMode));
     $("imageFile").addEventListener("change", e => loadBlob(e.target.files[0]));
@@ -472,6 +473,34 @@ function drawPreview(grid, changed) {
     }
 }
 
+// ---------- secret message ----------
+
+// Tells the creator how the message will be stored/shown, so a pasted link never silently ends
+// up as plain text (or silently loses the rest of what was typed).
+function updateSecretStatus() {
+    const el = $("secretStatus");
+    const text = $("secretText").value;
+    const secret = nono.classifySecret(text);
+    let msg = "", cls = "text-info";
+    if (!text) {
+        msg = "";
+    } else if (secret.kind === "steamgifts") {
+        msg = `SteamGifts link detected. Only the giveaway code (${secret.code}) is stored; the game name and any other text are dropped. Solvers will see a clickable link to this giveaway.`;
+        cls = "text-success";
+    } else if (secret.kind === "steamgifts-malformed") {
+        msg = "This mentions SteamGifts but isn't a giveaway link in the form steamgifts.com/giveaway/XXXXX/ (the slash after the 5-character code is needed), so it will be stored as plain text and won't be clickable.";
+        cls = "text-warning";
+    } else if (secret.kind === "link") {
+        msg = "This looks like a web link, but only SteamGifts giveaway links become clickable. It will be shown as plain text.";
+        cls = "text-warning";
+    } else {
+        msg = "Stored as plain text.";
+        cls = "gdp-muted";
+    }
+    el.textContent = msg;
+    el.className = "form-text " + cls;
+}
+
 // ---------- creating the link ----------
 
 async function createNonogram() {
@@ -480,10 +509,10 @@ async function createNonogram() {
     if (!secretText) { showError("Please enter a secret message."); return; }
 
     let msgType = 0;
-    const sgMatch = secretText.match(SG_REGEX);
-    if (sgMatch) {
+    const secret = nono.classifySecret(secretText);
+    if (secret.kind === "steamgifts") {
         msgType = 1;
-        secretText = sgMatch[1];
+        secretText = secret.code;
     } else {
         const unsupported = Array.from(secretText).filter(ch => !mathUtils.CHAR_TO_NUM.has(ch));
         if (unsupported.length > 0) {

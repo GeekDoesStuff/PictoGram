@@ -83,3 +83,83 @@ Entries before 2026-10-03 are backfilled from conversation history and dated app
   descriptions; log completed work to `history.md` in the established format and pick a distinct
   agent name; update `overview.md` itself when a change affects its conventions; don't restructure
   or rename things outside the actual assigned task, since the project is shared across agents.
+
+## 2026-10-03 — Claude_2 — Onboarding audit: bug fixes, board size display, SteamGifts documentation
+Read the whole project (notes, `shared/`, all of `Pictogram/`) and ran the tests before changing
+anything. Findings first (with who introduced each, as best the files show), then what changed.
+
+### Possible bugs found (all fixed here unless marked otherwise)
+1. **Shift+Q wiped the player's settings.** `js/player.js` `clearAllCache()` saved/restored the
+   settings under the old key `pictogram-settings`, but settings live under
+   `gdp-pictogram-settings` since the 2026-10-02 rename. Introduced by **Claude_1** in that
+   reorg (one hardcoded copy of the key was missed). Reproduced on the v2 zip: after Shift+Q the
+   settings were `null`. Only visible to players who never had the pre-rename key; anyone who did
+   was accidentally protected, because `settings.js` copies the old key back on the next load.
+   Fix: `settings.js` now exports `SETTINGS_KEY` and `player.js` imports it.
+2. **Style dropdown still said "Silhouette (characters, monsters, logos)".** The 2026-10-03 entry
+   by **Claude_1** says this wording was rewritten, but only the (i) tooltip was; the dropdown
+   labels come from `PRESETS` in `js/util/image-to-grid.js`, which was missed. Now
+   "Silhouette (solid shapes, clean background)". The other two labels were left as they were.
+3. **Touch instructions were wrong.** `index.html` and the README said "right-click (or
+   long-press)" to mark a square; the code has never handled long-press (on touch a tap cycles
+   empty → filled → marked). The sentence pre-dates this log; I couldn't tell from the files
+   whether it came from upstream or from Claude_1's rewrite. Text-only fix (owner's call): both
+   files now say what a computer can do vs. a phone/tablet, that there is no long-press, and that
+   keyboard shortcuts need a keyboard.
+4. **README linked to `../notes/overview.md`**, contradicting `overview.md` ("README assumes no
+   access to notes/"). `notes/` isn't published, so the link would 404. Introduced by **Claude_1**
+   (2026-10-03 structural move). Link removed; README also no longer links `../shared` as a page.
+5. **`package.json` was still the upstream one** (name `sg-nonograms`, a `gen` script pointing at
+   a `js/gen.js` that only exists under `dev-tools/original-upstream/`, a placeholder `test`).
+   Inherited from the upstream fork by **Claude_1** and not updated through the reorgs. Fixed:
+   name/description, dead `gen` script removed, `npm test` runs the three dev-tools tests.
+   **Left alone, unverified:** the `start` script (`http-server` isn't installed here and there
+   is no network; since pages load `../shared/`, it probably needs to serve the parent folder),
+   and `repository`/`bugs`/`homepage`, which still point at the upstream repo.
+6. **SteamGifts links: undocumented, and easy to mistake for broken.** Inherited upstream feature,
+   kept by **Claude_1** without documentation. The owner saw a plain-text message instead of a
+   link. Cause: only a link in the form `steamgifts.com/giveaway/XXXXX/` (slash after the code
+   required) becomes clickable; any other URL, a bare code, or a link missing the final slash is
+   stored as plain text, and the creator gave no feedback either way. Behaviour is unchanged (the
+   owner chose to keep SteamGifts as the only clickable link, for safety); it is now documented
+   (README + `overview.md`) and the creator says which case applies as you type.
+7. **NOT fixed, pre-existing:** `dev-tools/test-image.mjs` fails intermittently on the synthetic
+   noisy "photo" image at 60×60 with the Photo style. Measured on the v2 code before any change:
+   2 of 4 runs failed; on the v3 code 1 of 4 passed. Unseeded `Math.random` in
+   `puzzle-repair.js` plus a time budget. The test header describes a different flaky case, so
+   this was undocumented; it is now in the backlog in `overview.md`. `npm test` can therefore
+   fail on a good build — rerun before treating it as a regression.
+
+### Changes
+- **Board size shown to the player:** "15 × 10 (columns × rows)" under the title, for every
+  puzzle including old v1/v2 links (size comes from the link). Columns × rows is the usual
+  nonogram convention. The creator form still lists Rows before Columns — left as is, noted in
+  `overview.md`.
+- **Creator secret-message feedback:** live line under the message box — SteamGifts link
+  detected (shows the code, says the game name/other text is dropped) / looks like a SteamGifts
+  link but isn't a giveaway link (needs the slash after the code) / other web link (plain text,
+  not clickable) / plain text.
+- SteamGifts detection moved from `creator.js` into `js/util/nono-utils.js` as `classifySecret()`
+  (plus `SG_REGEX`), so node can test it. The regex itself is unchanged and still case-sensitive.
+- New `dev-tools/test-secret.mjs` (12 classification cases + a full create → parse → solve →
+  decrypt → link round trip with a `msgType` 1 code).
+- `overview.md` updated: new conventions (columns × rows, one settings key definition, DOM-free
+  logic in `js/util/`), `npm test`, a "Secret messages and links" section, backlog changes, and
+  `Claude_2` listed as an agent name in use.
+
+### Testing, and its limits
+- Node: `test-roundtrip` all ok (188/188 v3, legacy v2, v1), `test-secret` all ok, `test-image`
+  see item 7.
+- Headless Chromium on localhost: player (size display, new instructions text, Shift+Q keeps
+  settings and clears progress — this failed on v2, passes on v3) and creator (upload a picture →
+  Ready → each message kind shows the right line → create a link with a SteamGifts URL → the link
+  decodes to `AbC12` → opens in the player at the right size). No page errors.
+- **Limits:** the sandbox has no network, so p5 and Bootstrap were replaced by stubs. The canvas
+  drawing, real mouse/touch input, the settings drawer and tooltips were NOT exercised, and
+  nothing was tried on a real phone. The "clickable link appears after solving" step was checked
+  at the data level (code decrypts, URL is rebuilt) but not visually.
+
+### Open
+- Items 5 (`start` script, repository fields) and 7 above.
+- Pre-existing, noticed, not touched: the player still loads its libraries from CDNs, so it needs
+  a network connection to run at all.

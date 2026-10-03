@@ -5,8 +5,8 @@ filling in the right squares reveals an image. Solve it, and a hidden message ap
 
 **[Try the creator →](creator.html)**
 
-Part of the [Goblin Does Puzzles](../shared) project — see `../notes/overview.md` for how this
-fits together with other puzzles sharing the same codebase.
+Part of the Goblin Does Puzzles project: a series of browser-based logic puzzles that share the
+look-and-feel code in the `shared/` folder next to this one.
 
 ## What it does
 
@@ -21,8 +21,11 @@ fits together with other puzzles sharing the same codebase.
 ## Playing
 
 Open a Pictogram link and start filling in squares:
-- Left-click (or tap) to fill a square.
-- Right-click (or long-press) to mark a square as empty.
+- **On a computer:** left-click to fill a square, right-click to mark it as empty.
+- **On a phone or tablet:** tap a square to cycle it — empty, then filled, then marked empty, then
+  back to empty. There is no long-press, and the keyboard shortcuts need a physical keyboard.
+- Dragging across squares applies the same change to a whole line at once.
+- The board's size (columns × rows, e.g. 15 × 10) is shown under the title.
 - Match each row and column to its numbers — groups of filled squares need at least one empty
   square between them, same as a normal nonogram.
 
@@ -37,10 +40,28 @@ Open `creator.html`, upload a picture, and adjust a few options:
   whole image and cropping is optional.
 - **Style** — Silhouette for flat shapes/logos, Line art for outlines, Photo for shaded images.
 - **Grid size**, up to 60×60.
-- **Secret message**, shown once the puzzle is solved.
+- **Secret message**, shown once the puzzle is solved (see below for links).
 
 Pictogram checks the result is solvable with a single, unambiguous solution before handing you the
 link, adjusting a few squares if needed so it is.
+
+## Secret messages and links
+
+The secret is shown as plain text, with one exception: a **SteamGifts giveaway link** becomes a
+clickable link. Paste the full address (for example
+`https://www.steamgifts.com/giveaway/AbC12/some-game-name`) and the creator pulls out the
+5-character giveaway code, drops the game name and any other text, and stores only the code. When
+the puzzle is solved, the player rebuilds `https://www.steamgifts.com/giveaway/AbC12/` from that
+code. The creator tells you whether it recognised your link.
+
+- The slash after the 5-character code is required. Typing just `AbC12`, or leaving the final `/`
+  off, stores it as plain text.
+- Any other web address is shown as plain text and is not clickable. This is deliberate: puzzle
+  links get passed between strangers, and clickable arbitrary links would make a puzzle an easy
+  way to hide a phishing link.
+- Why a code and not a normal message: this comes from the upstream project, which was built for
+  hiding giveaway codes. A 5-character code takes less room in the link than ordinary text, and
+  since only the code is stored, the link can only ever point at SteamGifts.
 
 ## Hosting your own copy
 
@@ -64,6 +85,8 @@ extends with picture-based puzzles. Licensed under GPL-3.0.
 ## For developers
 
 - `dev-tools/test-roundtrip.mjs` — tests the puzzle-link format, including older link versions.
+- `dev-tools/test-secret.mjs` — tests which secret messages count as SteamGifts links, and that a
+  giveaway code survives creating, solving and decrypting a puzzle.
 - `dev-tools/test-image.mjs` — tests the image-to-puzzle conversion on synthetic pictures.
 - `dev-tools/original-upstream/` — the original upstream files, kept for reference only.
 

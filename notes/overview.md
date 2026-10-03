@@ -79,6 +79,12 @@ onto those two generic states — it should be a very small file.
 - Zips handed to a human or another agent are named `GoblinPuzzles_<ProjectName>_<YYYY-MM-DD>_v<N>.zip`,
   incrementing `v<N>` per zip produced in a session (no reliable clock time is available, so this
   is the accurate alternative to a timestamp).
+- A puzzle's board size is always written **columns × rows** (width × height, e.g. `15 × 10`), the
+  usual nonogram convention. Note Pictogram's creator form lists Rows before Columns; that's an
+  existing quirk, not a second convention.
+- A puzzle's `localStorage` settings key is defined once, in that puzzle's `js/util/settings.js`
+  (Pictogram exports it as `SETTINGS_KEY`). Import it; never type the key string anywhere else —
+  a hardcoded copy went stale in the 2026-10-02 rename and broke Shift+Q (see `history.md`).
 - Test/example code is named for *what it tests*, never for a flavour example someone mentioned in
   conversation (e.g. a synthetic test shape is `subjectMask`, not named after whatever creature was
   used as a conversational example when describing it).
@@ -87,7 +93,10 @@ onto those two generic states — it should be a very small file.
 
 - Every puzzle's logic (solving, encoding/decoding, generation) has node-runnable tests under its
   own `dev-tools/` folder — no browser needed. Run with `node dev-tools/<file>.mjs` from inside
-  the puzzle's folder.
+  the puzzle's folder, or run them all with `npm test` (Pictogram: `test-roundtrip`,
+  `test-secret`, `test-image`). `test-image` has a known intermittent failure — see the backlog.
+- Logic that a page needs but that doesn't touch the DOM (e.g. `classifySecret` in
+  `nono-utils.js`) goes in `js/util/` so a node test can cover it, with the page file only calling it.
 - UI changes should be smoke-tested in a headless browser before being called done, covering at
   least: the core create→share→solve flow, and any new interactive control added.
 - Changing something in `shared/` means re-checking every puzzle that depends on it, not just the
@@ -111,8 +120,8 @@ a question about the code. Before and after doing that:
   owner — the owner is coordinating multiple agents across sessions and `history.md` is the one
   place that record survives. Use the existing format: `## YYYY-MM-DD — <YourName> — <summary>`,
   a few bullet points of what changed and why, and anything you left unresolved. Pick a name for
-  yourself in the log distinct from other agents' entries (e.g. `Claude_1` is already in use —
-  don't reuse it as a different agent/model).
+  yourself in the log distinct from other agents' entries (`Claude_1` and `Claude_2` are already in
+  use — don't reuse either as a different agent/model).
 - **If you change something that affects the conventions in this file** (a new naming pattern, a
   new shared module, a changed workflow step) — update `overview.md` itself in the same task,
   don't leave it for someone else to notice it's stale. This file is meant to always reflect
@@ -131,13 +140,47 @@ The link encodes the exact solved grid plus an XOR-encrypted secret message, wit
 guarantees the puzzle has exactly one logic-solvable solution (adjusting the fewest, least visible
 cells if the original picture was ambiguous). The player page has a timer, manual save points
 (separate from continuous autosave), 10 colour themes with light/dark/auto switching, a choice of
-X or dot for marked cells, and a non-modal settings panel.
+X or dot for marked cells, a non-modal settings panel, and the board's size (columns × rows)
+shown under the title.
+
+Input differs by device: on a computer, left-click fills and right-click marks; on a phone or
+tablet a tap cycles empty → filled → marked → empty. There is deliberately no long-press (see the
+backlog), and the keyboard shortcuts need a physical keyboard.
+
+### Secret messages and links (how and why)
+
+A secret message is plain text, with **one** exception: a SteamGifts giveaway link is stored as
+just its 5-character code and shown as a clickable link. This is inherited from the upstream fork
+(sg-nonograms was built for hiding giveaway codes) and is kept on purpose:
+- `classifySecret()` in `js/util/nono-utils.js` decides the kind. A match needs the 5-character
+  code followed by a slash (`steamgifts.com/giveaway/AbC12/...`); the game name after it and any
+  text around the link are dropped. Matching is case-sensitive; an all-caps domain is reported as
+  a malformed SteamGifts link rather than silently going plain.
+- Stored with `msgType` 1 (6 bits per character, shorter than the 8-bit text mode). The player
+  rebuilds `https://www.steamgifts.com/giveaway/<code>/` itself, so a link can only ever point at
+  SteamGifts.
+- **Nothing else is ever clickable, on purpose.** Puzzle links get shared between strangers, so
+  clickable arbitrary URLs would let a puzzle hide a phishing link. Other web addresses show as
+  plain text.
+- The creator shows a live line under the message box saying which of these will happen
+  (recognised / malformed SteamGifts link / other link / plain text).
 
 ### Known backlog (not yet built)
 - Replace the "Random" mode with a small built-in puzzle gallery.
 - A measured difficulty indicator (how much of a puzzle needs real deduction vs. simple logic) to
   help with grid-size guidance.
-- Show the grid size and a custom puzzle title to the player.
+- A custom puzzle title shown to the player (the grid size is already shown).
+- Clickable links beyond SteamGifts: deliberately NOT enabled (see "Secret messages and links").
+  If ever wanted: http(s) only, built as a DOM element (never HTML), `rel="noopener noreferrer"`,
+  and a visible "this leaves the site" warning to the player.
+- Real long-press-to-mark on touch screens: rejected for now. It collides with drag-painting,
+  page scrolling and the browser's own long-press menu, and can't be verified without real
+  devices. Tap-to-cycle is the supported touch behaviour.
+- `dev-tools/test-image.mjs` fails intermittently on the synthetic noisy "photo" image at 60×60
+  with the Photo style (about half of runs, in both the 2026-10-03 v2 and v3 code). Cause: the
+  repair step uses unseeded `Math.random` and sometimes can't reach a single-solution grid inside
+  its time budget. In the real UI this shows as the "Couldn't turn this into a puzzle…" warning.
+  The test file's own header describes a different flaky case; this one is not covered there.
 - A hint system (creator sets 0–10 hints; player spends one to reveal a random correct cell).
 - A survival/lives mode (creator sets lives; a wrong cell costs one; 0 lives = game over screen).
 - An optional sound toggle with a couple of royalty-free tracks.

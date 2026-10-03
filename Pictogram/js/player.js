@@ -1,7 +1,7 @@
 import * as nono from './util/nono-utils.js';
 import * as idParser from './util/id-parser.js';
 import { BOARD_STYLES, buildPalette } from './util/board-styles.js';
-import { loadSettings, saveSettings, currentTheme, applyTheme, setupThemeButton } from './util/settings.js';
+import { loadSettings, saveSettings, currentTheme, applyTheme, setupThemeButton, SETTINGS_KEY } from './util/settings.js';
 import { setupNonModalPanel, setupTooltips } from '../../shared/gdp-ui.js';
 
 const sketch = (p, id) => {
@@ -308,6 +308,18 @@ const sketch = (p, id) => {
         [horHints, verHints] = nono.getPuzzleFromInfos(infos);
         maxHorHints = countMaxHints(horHints);
         maxVerHints = countMaxHints(verHints);
+
+        showBoardSize();
+    }
+
+    // Board size as "columns × rows" (width × height, the usual nonogram convention), so a
+    // non-square board like 15 × 10 is obvious at a glance.
+    function showBoardSize() {
+        const el = document.getElementById('sizeValue');
+        if(el) {
+            el.textContent = numCols + ' × ' + numRows;
+            document.getElementById('sizeDiv').hidden = false;
+        }
     }
 
     function resetGrid() {
@@ -857,11 +869,12 @@ const sketch = (p, id) => {
     }
 
     function clearAllCache() {
-        const keep = localStorage.getItem('pictogram-settings');
+        // wipes saved progress for every puzzle, but not the player's own settings
+        const keep = localStorage.getItem(SETTINGS_KEY);
         resetGrid();
         localStorage.clear();
         if(keep)
-            localStorage.setItem('pictogram-settings', keep);
+            localStorage.setItem(SETTINGS_KEY, keep);
         hideMessage();
         resetTimer();
         updateCheckpointButton();

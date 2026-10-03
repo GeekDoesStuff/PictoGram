@@ -3,6 +3,7 @@
 import { createSettingsStore, currentTheme as gdpCurrentTheme, applyTheme as gdpApplyTheme, setupThemeButton as gdpSetupThemeButton } from '../../../shared/gdp-settings.js';
 
 const KEY = 'gdp-pictogram-settings';
+export const SETTINGS_KEY = KEY; // single source of truth: other files must not hardcode this string
 const OLD_KEY = 'pictogram-settings'; // settings saved before the shared-module rename
 const DEFAULTS = { theme: null, board: 'classic', mark: 'x', showTimer: true }; // theme null = follow the device
 

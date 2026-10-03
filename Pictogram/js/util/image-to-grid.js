@@ -8,7 +8,7 @@ export const MIN_SIZE = 4;          // smallest rows/cols
 export const MIN_LONGER_SIDE = 8;   // longer side of the grid must be at least this (if the image allows)
 
 export const PRESETS = {
-    silhouette: { label: 'Silhouette (characters, monsters, logos)', sharpen: 0,   maxBlend: 0.3 },
+    silhouette: { label: 'Silhouette (solid shapes, clean background)', sharpen: 0,   maxBlend: 0.3 },
     lineart:    { label: 'Line art (drawings, outlines)',            sharpen: 0.2, maxBlend: 0.85 },
     photo:      { label: 'Photo (shaded pictures)',                  sharpen: 0.6, maxBlend: 0 }
 };

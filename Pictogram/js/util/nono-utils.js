@@ -392,3 +392,25 @@ export function getPageURL(id) {
 export function getSteamGiftsURL(code) {
     return `${SG_URL}giveaway/${code}/`;
 }
+
+// A SteamGifts giveaway link: the 5-character code must be followed by a slash. Anything after
+// that (usually the game's name) is ignored; the player rebuilds the link from the code alone.
+export const SG_REGEX = /(?:https?:\/\/)?(?:www\.)?steamgifts\.com\/giveaway\/([a-zA-Z0-9]{5})\//;
+
+// Decides how a secret message will be stored and shown. Only SteamGifts giveaway links are
+// ever clickable (by design: puzzle links get shared between strangers, so arbitrary clickable
+// URLs would make a puzzle a convenient way to hide a phishing link).
+//   'steamgifts'           -> stored as the 5-character code (msgType 1), shown as a link
+//   'steamgifts-malformed' -> mentions steamgifts.com but isn't a giveaway link; plain text
+//   'link'                 -> some other web address; plain text
+//   'plain'                -> ordinary text
+export function classifySecret(text) {
+    const m = text.match(SG_REGEX);
+    if(m)
+        return { kind: 'steamgifts', code: m[1] };
+    if(/steamgifts\.com/i.test(text))
+        return { kind: 'steamgifts-malformed' };
+    if(/https?:\/\/|www\./i.test(text))
+        return { kind: 'link' };
+    return { kind: 'plain' };
+}
