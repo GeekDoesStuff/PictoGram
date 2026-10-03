@@ -34,7 +34,7 @@ function render(kind, W, H) {
 const BLOBS = Array.from({ length: 12 }, () => [rnd(), rnd(), 0.05 + rnd() * 0.12, 0.4 + rnd() * 0.8]);
 
 const show = (grid) => grid.map(r => r.map(v => v ? '██' : '··').join('')).join('\n');
-let bad = 0;
+let bad = 0, expectedHollow = 0;
 for (const kind of ['transparent-cutout', 'on-busy-background', 'on-low-contrast-background', 'lineart', 'photo']) {
     const W = 400, H = 400;
     const src = img.makeSource(render(kind, W, H), W, H);
@@ -66,10 +66,12 @@ for (const kind of ['transparent-cutout', 'on-busy-background', 'on-low-contrast
                               (preset === 'lineart' && size >= 60);
             const hollow = mismatch;
             if (!ok && !hollow) bad++;
+            if (!ok && hollow) expectedHollow++;
             console.log(`  ${preset.padEnd(10)} ${size}x${size} black ${(frac * 100).toFixed(0)}% -> ${ok ? 'OK  ' : (hollow ? 'hollow-outline (expected)' : 'FAIL')} adjusted ${res.changed.length} (${(100 * res.changed.length / (size * size)).toFixed(1)}%) in ${ms}ms`);
             const isSubjectShape = kind.startsWith('on-') || kind === 'transparent-cutout';
             if (size === 40 && preset === detected && isSubjectShape && kind !== 'on-low-contrast-background') console.log(show(res.grid).split('\n').filter((_, i) => i % 1 === 0).join('\n'));
         }
 }
+console.log(`\nexpected-hollow cases that did not solve (not counted as failures): ${expectedHollow}`);
 console.log(bad ? `\nFAILURES: ${bad}` : '\nALL OK');
 process.exit(bad ? 1 : 0);

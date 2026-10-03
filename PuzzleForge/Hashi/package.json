@@ -1,0 +1,2 @@
+{ "name": "hashi", "version": "0.1.0", "private": true, "type": "module",
+  "scripts": { "test": "node dev-tools/test-hashi.mjs" } }

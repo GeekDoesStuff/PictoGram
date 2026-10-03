@@ -5,7 +5,7 @@ import { BitSeq } from '../js/util/bitseq.js';
 import { makeUniquelySolvable } from '../js/util/puzzle-repair.js';
 import { solveGrid, gridToClues } from '../js/util/line-solver.js';
 
-let bad = 0, n = 0, rleUsed = 0, lenSum = 0;
+let bad = 0, n = 0, skipped = 0, rleUsed = 0, lenSum = 0;
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 for (const rows of [4, 5, 9, 16, 25, 31, 47, 60])
@@ -19,7 +19,7 @@ for (const rows of [4, 5, 9, 16, 25, 31, 47, 60])
           noisy ? (rnd() < 0.5 ? 1 : 0) : (Math.hypot(r - rows / 2, c - cols / 2) < Math.min(rows, cols) / 2.6 ? 1 : 0)));
       const conf = raw.map(r => r.map(() => rnd()));
       const res = makeUniquelySolvable(raw, conf);
-      if (!res.solved) continue;
+      if (!res.solved) { skipped++; continue; } // repair ran out of time: counted, not hidden
       const id = nono.generateNonogramFromGrid(res.grid, msg, 0);
       const infos = idParser.parseId(id);
       const [rh, ch] = nono.getPuzzleFromInfos(infos);
@@ -32,7 +32,7 @@ for (const rows of [4, 5, 9, 16, 25, 31, 47, 60])
       if (id.length < (rows * cols) / 6) rleUsed++;
       if (!ok) { bad++; console.log('FAIL v3', rows, cols, msg.slice(0, 10), infos.version, dec); }
     }
-console.log(`v3 round trips: ${n - bad}/${n} ok  (compressed links: ${rleUsed}, avg id length ${Math.round(lenSum / n)})`);
+console.log(`v3 round trips: ${n - bad}/${n} ok, SKIPPED ${skipped} of ${n + skipped} cases (repair gave up)  (compressed links: ${rleUsed}, avg id length ${Math.round(lenSum / n)})`);
 
 // legacy v2 links (picture format used by the first version) must still open
 {

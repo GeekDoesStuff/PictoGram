@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark"><head><title>Hashi</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="../../shared/gdp-theme.css">
+</head><body>
+<div class="gdp-page">
+  <div class="gdp-header position-relative"><h1>Hashi</h1><div class="gdp-subtitle" id="size"></div>
+    <button type="button" id="themeBtn" class="btn btn-outline-secondary btn-sm" style="position:absolute;top:0;right:0"></button></div>
+  <div class="gdp-panel p-2 mb-3 text-center" id="boardWrap"></div>
+  <div id="msg" class="my-2 p-2 bg-success bg-opacity-10 border border-success rounded fw-bold text-center" style="display:none"></div>
+  <div class="gdp-panel p-3"><div class="gdp-section-title">How to play (first draft)</div>
+    <ul class="mb-0"><li>Click the gap between two neighbouring islands to cycle: no bridge, one bridge, two bridges.</li>
+    <li>Each island's number is how many bridges touch it. Bridges are straight and never cross.</li>
+    <li>All islands must end up connected. A filled island has all its bridges. Progress is not saved yet.</li></ul></div>
+  <div class="text-center mt-3"><a class="btn btn-outline-primary" href="creator.html" target="_blank">Create your own Hashi</a></div>
+</div>
+<script type="module">
+import { createSettingsStore, applyTheme, setupThemeButton } from '../../shared/gdp-settings.js';
+import { parseLink, solve, decryptMessage } from './js/hashi-logic.js';
+const store = createSettingsStore('gdp-hashi-settings', { theme: null });
+applyTheme(store); setupThemeButton(store, document.getElementById('themeBtn'));
+const $ = id => document.getElementById(id), CS = 46;
+let info, sol, val;
+try {
+  info = parseLink(new URLSearchParams(location.search).get('id') || '');
+  sol = solve(info.W, info.H, info.islands);
+  if (sol.count !== 1) throw new Error('bad puzzle');
+} catch (e) { $('boardWrap').textContent = "This link isn't a valid Hashi puzzle."; throw e; }
+const { W, H, islands } = info, edges = sol.edges; val = edges.map(() => 0);
+$('size').innerHTML = '<b>' + W + ' × ' + H + '</b> <span class="small">(columns × rows)</span>';
+const cx = s => s.c * CS + CS / 2, cy = s => s.r * CS + CS / 2;
+function draw() {
+  const total = islands.map(() => 0); edges.forEach((e, i) => { total[e.a] += val[i]; total[e.b] += val[i]; });
+  let g = '', hit = '', isl = '';
+  edges.forEach((e, i) => {
+    const A = islands[e.a], B = islands[e.b];
+    hit += '<line data-i="' + i + '" x1="' + cx(A) + '" y1="' + cy(A) + '" x2="' + cx(B) + '" y2="' + cy(B) + '" stroke="transparent" stroke-width="24" pointer-events="stroke" style="cursor:pointer"/>';
+    const offs = val[i] === 1 ? [0] : val[i] === 2 ? [-4, 4] : [];
+    offs.forEach(o => { const dx = e.h ? 0 : o, dy = e.h ? o : 0;
+      g += '<line x1="' + (cx(A) + dx) + '" y1="' + (cy(A) + dy) + '" x2="' + (cx(B) + dx) + '" y2="' + (cy(B) + dy) + '" stroke="var(--gdp-fg)" stroke-width="2.5"/>'; });
+  });
+  islands.forEach((s, k) => {
+    const full = total[k] === s.n, over = total[k] > s.n;
+    isl += '<circle cx="' + cx(s) + '" cy="' + cy(s) + '" r="16" fill="' + (full ? 'var(--gdp-accent)' : 'var(--gdp-panel)') + '" stroke="' + (over ? '#e5484d' : 'var(--gdp-fg)') + '" stroke-width="2.5"/>' +
+      '<text x="' + cx(s) + '" y="' + (cy(s) + 5.5) + '" text-anchor="middle" font-size="16" font-weight="700" fill="' + (full ? '#fff' : 'var(--gdp-fg)') + '">' + s.n + '</text>';
+  });
+  $('boardWrap').innerHTML = '<svg id="board" viewBox="0 0 ' + W * CS + ' ' + H * CS + '" style="width:100%;max-width:' + W * CS + 'px">' + hit + g + isl + '</svg>';
+  if (JSON.stringify(val) === JSON.stringify(sol.values)) {
+    $('msg').textContent = decryptMessage(info.enc, sol.values); $('msg').style.display = 'block';
+  }
+}
+$('boardWrap').addEventListener('click', ev => {
+  const i = ev.target.dataset && ev.target.dataset.i; if (i === undefined) return;
+  const e = edges[i], next = (val[i] + 1) % 3;
+  if (next > 0 && e.cross.some(j => val[j] > 0)) return; // bridges may not cross
+  val[i] = next; draw();
+});
+draw();
+</script></body></html>

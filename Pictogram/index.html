@@ -71,7 +71,6 @@
                 <li>+ / Up arrow — zoom in, − / Down arrow — zoom out</li>
                 <li>Shift+S — save a point, Shift+L — load your last saved point</li>
                 <li>Shift+R — reset this puzzle's progress and timer (cannot be undone)</li>
-                <li>Shift+Q — clear saved progress for every puzzle on this device</li>
                 <li>The timer starts on your first filled square and pauses when this tab isn't focused</li>
                 <li>Progress, your save point and the timer are kept on this device between visits</li>
             </ul>
@@ -104,6 +103,11 @@
                 <input class="form-check-input" type="checkbox" id="showTimerCheck">
                 <label class="form-check-label" for="showTimerCheck">Show timer</label>
             </div>
+        </div>
+        <div>
+            <div class="gdp-section-title">Saved data</div>
+            <button type="button" id="clearProgressBtn" class="btn btn-outline-danger btn-sm w-100">Clear saved progress…</button>
+            <div class="form-text">Deletes progress, timers and save points for all Pictogram puzzles on this device. Settings are kept.</div>
         </div>
     </div>
 </div>

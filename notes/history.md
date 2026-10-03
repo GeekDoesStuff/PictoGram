@@ -163,3 +163,110 @@ anything. Findings first (with who introduced each, as best the files show), the
 - Items 5 (`start` script, repository fields) and 7 above.
 - Pre-existing, noticed, not touched: the player still loads its libraries from CDNs, so it needs
   a network connection to run at all.
+
+## 2026-10-03 — Claude_2 — Correction: board-size testing claim, and what happened after
+`history.md` is append-only, so this corrects the earlier Claude_2 entry ("Onboarding audit…")
+rather than editing it.
+
+- **What was overstated:** that entry's "Testing, and its limits" section lists the player's board
+  size display as checked. The check read the element's `textContent`, which is also present on a
+  hidden element, so it could not have caught "in the page but not visible". The size display's
+  visibility was effectively unverified when that entry was written. The same goes for the new
+  instructions text: the strings were confirmed present, their on-screen display was not (the
+  first smoke run had Bootstrap's CSS blocked). The Shift+Q and creator checks are not affected:
+  Shift+Q was shown failing on the v2 zip first, and the creator checks compared the exact
+  messages and decoded the created link.
+- **Owner report:** with the v3 files the size line did not appear on the puzzle page (reported
+  twice).
+- **Investigation:** unzipped the delivered v3 zip and tested that, with the real Bootstrap 5.3.2
+  JS/CSS, p5 started on the window `load` event as the real library does, in dark and light
+  schemes: visible (computed `display: block`, non-zero size), no console errors or failed
+  requests, readable contrast. Two control runs reproduced the owner's symptom with no errors at
+  all: new `index.html` + old `player.js` leaves the line permanently `hidden`; old `index.html`
+  + new `player.js` has no element to fill. The real p5 library was never run (no network, no
+  local copy), so a problem specific to it was not ruled out.
+- **Outcome:** the owner later reported the size displaying after opening `js/player.js`
+  directly and running `document.getElementById('sizeDiv')` in the console, both of which force a
+  fresh fetch. Root cause not confirmed; most consistent with a stale cached file, not proven.
+  No code was changed in response.
+- **Parked, only if it recurs:** a v4 that sets the size independently of p5's startup and
+  without the `hidden` attribute, plus a small visible version stamp so "is this the right
+  version?" can be answered at a glance.
+- `overview.md` workflow conventions updated with the stricter testing standard and the
+  hard-refresh-first step above.
+
+## 2026-10-03 — Claude_3 — Onboarding, Pictogram fixes, Puzzle Forge landing page (v4)
+Read all notes and files, ran `test-secret` and `test-roundtrip` (v3 187/187, 3 skipped cases not
+visible then). Owner decisions this session: progress keys get a per-puzzle prefix (no migration yet),
+Shift+Q removed in favour of a confirmed "Clear saved progress…" button in Settings, every puzzle gets
+a secret message, Forge lives in its own folder `PuzzleForge/`, standalone-vs-packaged decided per puzzle.
+### Changes
+- Pictogram: progress/timer/save-point keys now start with `gdp-pictogram:` (`PROGRESS_PREFIX`); Settings
+  has "Clear saved progress…" (native confirm() explaining the effect) deleting only prefixed keys;
+  Shift+Q and `clearAllCache()` removed; secret message box is cleared before showing, so solving twice
+  can't stack a second link (message staying visible after Load Point is intended, not a bug).
+- Tests: `test-roundtrip` prints SKIPPED count; `test-image` prints expected-hollow count.
+- `verify-link.mjs`: now requires a link argument (old hardcoded sandbox path removed), documented in the
+  README. **Author unknown** — whichever agent wrote it, please add a line here.
+- New `PuzzleForge/index.html`: landing page, Pictogram live, Hashi/Akari "In progress", the other eight
+  crossed out. `overview.md`: folder map, Forge section, secret-message-for-all rule, sandbox limits.
+### Open
+- Hashi and Akari logic and draft pages NOT built in this zip. Next task.
+- Not tested: the confirm pop-up and Settings button in a real browser; the Forge page visually.
+
+## 2026-10-03 — Claude_3 — Hashi first draft (v5)
+- New `PuzzleForge/Hashi/`: solver (counts solutions, rejects disconnected/impossible), generator (random
+  island tree + extra bridges, kept only if exactly one solution), link codec with the secret locked by the
+  solution, `creator.html`, `play.html` (SVG board, click a gap to cycle 0/1/2 bridges, no crossings, shows the
+  secret on solve), `dev-tools/test-hashi.mjs`. Forge landing page: Hashi is now a live box labelled first draft.
+- Test result: 12 of 12 generated puzzles (7x7, 9x9, 11x8) round-tripped; 5 hand-made solver cases ok; the test
+  prints how many puzzles the generator gave up on (0 here). One of my own test cases was wrong first (the
+  "disconnected" example was actually solvable) and was fixed in the test, not the solver.
+- Copied Pictogram's `bitseq.js`/`math-utils.js` into Hashi (see overview.md, needs owner decision).
+### Not tested
+- Both pages in a real browser (no network, Bootstrap/CSS not loaded here): layout, clicking, theme, the SVG
+  rendering and the solved message are unverified visually. Large sizes (14x14) and generation time untested.
+- Akari: not started in this zip.
+
+## 2026-10-03 — Claude_3 — Correction to the Hashi (v5) entry: testing shortfall, owner feedback, open decisions
+`history.md` is append-only, so this corrects the entry above instead of editing it. No code changed.
+- **What fell short:** the Hashi pages (`creator.html`, `play.html`) were only syntax-checked. I did not try a
+  headless-browser smoke test, and I did not check whether one was possible, although Claude_2 ran such tests in
+  this same kind of sandbox (Bootstrap/p5 stubbed) and `overview.md` asks for a core create -> share -> solve
+  check plus every new control. The 14x14 generation time was also not measured, though plain Node could do it.
+  The "Not tested" list in the v5 entry was accurate, but it listed things that could have been tested.
+- **Owner feedback:** the owner called this a failure and ranked Claude_3 last among the Claude agents so far.
+  Recorded as given. The owner has no time to re-run tests this session and will come back with updated info.
+- **Still to do for Hashi (not done):** headless-browser check that the board renders at a visible size (computed
+  size, not `textContent`), that clicking a gap cycles 0/1/2, that bridges refuse to cross, and that the solved
+  message appears, with at least one control expected to fail; say what was stubbed (no network, so no real
+  Bootstrap); time `generate()` at 14x14.
+- **Shared helpers (open decision, owner's call):** `Hashi/js/util/bitseq.js` and `math-utils.js` are copies of
+  Pictogram's generic bit/link/character helpers. Hashi's puzzle logic itself (`hashi-logic.js`: solver, generator,
+  link codec, solution-derived key) is new and shares no nonogram logic. By the second-consumer test the two helper
+  files belong in `shared/`; that means editing Pictogram's imports, so it waits for approval.
+- **Akari:** not started.
+
+## 2026-10-03 — Claude_3 — Incident: v5 zip briefly deleted while re-zipping (nothing lost)
+- **What happened:** when adding the correction entry above, I ran `rm -f` on the existing output
+  `GoblinPuzzles_PuzzleForge_2026-10-03_v5.zip` and then zipped from the wrong folder (my `cd ..` went one level
+  too deep), so the zip step failed ("Nothing to do") and for a short time no v5 zip existed in `outputs/`.
+- **What was and wasn't affected:** only my own earlier copy of the v5 zip was deleted. The owner's uploaded v3 zip,
+  the v4 zip, and all project files in the working folder were untouched. I rebuilt v5 from the working folder
+  and checked it (60 files, the correction entry inside), then listed `outputs/` and `uploads/` to confirm.
+- **Owner reaction:** I first reported this only in chat, not here; the owner pointed out it belonged in `history.md`
+  too (second time in this session that a correction was left out of the log). Logged now.
+- **Rule for whoever re-packages a zip:** build the new zip under a temp name first, check it (file count, open one
+  file), and only then replace the old one. Never delete the old zip before the new one exists, and use absolute
+  paths instead of `cd ..`.
+
+## 2026-10-03 — Claude_3 — Correction: two wrong numbers in my own earlier entries
+Found while the owner asked whether this log tells the full story. Checked: the 15185 bytes of the original
+`history.md` (Claude_1/Claude_2 entries) are unchanged; all Claude_3 entries were appended at the end. These two
+numbers in my entries were wrong (entries themselves not edited, because the log is append-only):
+- The v4 entry says `test-roundtrip` showed "3 skipped cases". The run has 192 cases (8 sizes x 6 sizes x 4
+  messages) and passed 187, so **5 were skipped**, as the later run printed ("SKIPPED 5 of 192"). The first run
+  did not print a skipped count at all; I should not have stated one.
+- The Hashi (v5) entry says "5 hand-made solver cases ok". `test-hashi.mjs` has **3** hand-made solver cases
+  (ring has exactly 1 solution, impossible clue has 0, two separate groups rejected) plus 1 generator threshold
+  check, and the 12 generated puzzles are checked separately. The same wrong "5" went into my chat summary.

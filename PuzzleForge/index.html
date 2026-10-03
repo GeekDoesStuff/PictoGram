@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goblin's Puzzle Forge</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link rel="stylesheet" href="../shared/gdp-theme.css">
+<style>
+.forge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.9rem; }
+.forge-box { display: block; padding: 1rem; color: inherit; text-decoration: none; height: 100%; }
+.forge-box h2 { font-size: 1.15rem; font-weight: 700; margin: 0 0 0.3rem; }
+.forge-box p { margin: 0 0 0.6rem; font-size: 0.9rem; color: var(--gdp-muted); }
+.forge-tag { font-size: 0.8rem; font-weight: 600; }
+a.forge-box:hover, a.forge-box:focus-visible { border-color: var(--gdp-accent); outline: none; }
+.forge-off h2, .forge-off p { text-decoration: line-through; }
+.forge-off { opacity: 0.55; }
+.forge-wip .forge-tag { color: var(--gdp-accent); }
+</style>
+</head>
+<body>
+<div class="gdp-page gdp-page-wide">
+    <div class="gdp-header position-relative">
+        <h1>Goblin's Puzzle Forge</h1>
+        <div class="gdp-subtitle">Pick a puzzle, build your own, hide a secret message inside it.</div>
+        <button type="button" id="themeBtn" class="btn btn-outline-secondary btn-sm" style="position:absolute; top:0; right:0;"></button>
+    </div>
+    <div class="forge-grid" id="grid"></div>
+    <p class="gdp-muted small text-center mt-4">Crossed-out puzzles aren't ready yet.</p>
+</div>
+<script type="module">
+import { createSettingsStore, applyTheme, setupThemeButton } from '../shared/gdp-settings.js';
+const store = createSettingsStore('gdp-forge-settings', { theme: null });
+applyTheme(store);
+setupThemeButton(store, document.getElementById('themeBtn'));
+
+// status: 'live' (link works), 'wip' (being built, no page yet), 'off' (not started)
+const PUZZLES = [
+    { name: 'Pictogram', status: 'live', href: '../Pictogram/creator.html', text: 'Turn a picture into a nonogram.' },
+    { name: 'Hashi (first draft)', status: 'live', href: './Hashi/creator.html', text: 'Join islands with bridges so every island has the right number.' },
+    { name: 'Akari', status: 'wip', text: 'Place lamps to light every cell, guided by the numbered walls.' },
+    { name: 'Nurikabe', status: 'off', text: 'Shade the walls so every island has the right size.' },
+    { name: 'Skyscrapers', status: 'off', text: 'Fill the grid with towers; edge clues say how many you can see.' },
+    { name: 'Binairo', status: 'off', text: 'Fill a grid with 0s and 1s using simple balance rules.' },
+    { name: 'Futoshiki / KenKen', status: 'off', text: 'Latin squares with inequality or arithmetic clues.' },
+    { name: 'Slitherlink', status: 'off', text: 'Draw one loop that matches every number.' },
+    { name: 'Crossword generator', status: 'off', text: 'Supply the words and clues; the Forge builds and locks the grid.' },
+    { name: 'Train Tracks', status: 'off', text: 'Lay track using the row and column counts.' },
+    { name: 'Chained mode', status: 'off', text: 'Link several puzzles into one sequence.' }
+];
+const LABEL = { live: 'Play', wip: 'In progress', off: 'Not active yet' };
+const grid = document.getElementById('grid');
+for (const p of PUZZLES) {
+    const box = document.createElement(p.status === 'live' ? 'a' : 'div');
+    box.className = 'gdp-panel forge-box' + (p.status === 'off' ? ' forge-off' : p.status === 'wip' ? ' forge-wip' : '');
+    if (p.status === 'live') box.href = p.href;
+    else box.setAttribute('aria-disabled', 'true');
+    const h = document.createElement('h2'); h.textContent = p.name;
+    const t = document.createElement('p'); t.textContent = p.text;
+    const s = document.createElement('span'); s.className = 'forge-tag'; s.textContent = LABEL[p.status];
+    box.append(h, t, s);
+    grid.appendChild(box);
+}
+</script>
+</body>
+</html>

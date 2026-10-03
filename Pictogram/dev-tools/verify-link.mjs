@@ -1,8 +1,9 @@
 import * as nono from '../js/util/nono-utils.js';
 import * as idParser from '../js/util/id-parser.js';
 import { solveGrid } from '../js/util/line-solver.js';
-import fs from 'fs';
-const link = process.argv[2] ?? fs.readFileSync('/home/claude/link.txt', 'utf8').trim();
+// Usage: node dev-tools/verify-link.mjs "<puzzle link>"  (decodes, solves by logic, prints the message)
+const link = process.argv[2];
+if (!link) { console.log('Usage: node dev-tools/verify-link.mjs "<puzzle link>"'); process.exit(1); }
 const id = new URL(link).searchParams.get('id');
 const infos = idParser.parseId(id);
 const [h, v] = nono.getPuzzleFromInfos(infos);

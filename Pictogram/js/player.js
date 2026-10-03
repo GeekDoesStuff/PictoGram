@@ -1,7 +1,7 @@
 import * as nono from './util/nono-utils.js';
 import * as idParser from './util/id-parser.js';
 import { BOARD_STYLES, buildPalette } from './util/board-styles.js';
-import { loadSettings, saveSettings, currentTheme, applyTheme, setupThemeButton, SETTINGS_KEY } from './util/settings.js';
+import { loadSettings, saveSettings, currentTheme, applyTheme, setupThemeButton, SETTINGS_KEY, PROGRESS_PREFIX } from './util/settings.js';
 import { setupNonModalPanel, setupTooltips } from '../../shared/gdp-ui.js';
 
 const sketch = (p, id) => {
@@ -199,7 +199,7 @@ const sketch = (p, id) => {
     function saveTimer() {
         timerSavedAt = performance.now();
         try {
-            localStorage.setItem(id + '#time', JSON.stringify({e: Math.round(timerElapsed), s: timerStarted ? 1 : 0}));
+            localStorage.setItem(progressKey('#time'), JSON.stringify({e: Math.round(timerElapsed), s: timerStarted ? 1 : 0}));
         } catch(e) { /* storage blocked */ }
     }
 
@@ -207,7 +207,7 @@ const sketch = (p, id) => {
         timerStarted = false;
         timerElapsed = 0;
         try {
-            const saved = JSON.parse(localStorage.getItem(id + '#time') || 'null');
+            const saved = JSON.parse(localStorage.getItem(progressKey('#time')) || 'null');
             if(saved) {
                 timerElapsed = saved.e || 0;
                 timerStarted = saved.s == 1;
@@ -223,7 +223,7 @@ const sketch = (p, id) => {
         timerStarted = false;
         timerElapsed = 0;
         timerLast = performance.now();
-        localStorage.removeItem(id + '#time');
+        localStorage.removeItem(progressKey('#time'));
         renderTimer();
     }
 
@@ -233,6 +233,7 @@ const sketch = (p, id) => {
         document.getElementById("zoomInBtn").addEventListener("click", zoomIn);
         document.getElementById("zoomOutBtn").addEventListener("click", zoomOut);
         document.getElementById("resetBtn").addEventListener("click", reset);
+        document.getElementById("clearProgressBtn").addEventListener("click", clearPictogramProgress);
         document.getElementById("saveBtn").addEventListener("click", saveCheckpoint);
         document.getElementById("loadBtn").addEventListener("click", loadCheckpoint);
         updateCheckpointButton();
@@ -240,8 +241,13 @@ const sketch = (p, id) => {
 
     // ----- save points: a manual snapshot separate from the continuous autosave -----
 
+    // every saved-progress key for this puzzle starts with PROGRESS_PREFIX (see settings.js)
+    function progressKey(suffix = '') {
+        return PROGRESS_PREFIX + id + suffix;
+    }
+
     function checkpointKey() {
-        return id + '#checkpoint';
+        return progressKey('#checkpoint');
     }
 
     function updateCheckpointButton() {
@@ -339,7 +345,7 @@ const sketch = (p, id) => {
     }
 
     function loadState() {
-        const encodedState = localStorage.getItem(id);
+        const encodedState = localStorage.getItem(progressKey());
         if(!encodedState) {
             loadTimer();
             return;
@@ -354,11 +360,11 @@ const sketch = (p, id) => {
         if(ended)
             return;
         const encodedState = nono.encodeGameState(grid, gridHorHints, gridVerHints);
-        localStorage.setItem(id, encodedState);
+        localStorage.setItem(progressKey(), encodedState);
     }
 
     function deleteState() {
-        localStorage.removeItem(id);
+        localStorage.removeItem(progressKey());
     }
 
     function countMaxHints(hints) {
@@ -772,6 +778,7 @@ const sketch = (p, id) => {
     function displaySecretMessage() {
         let code = nono.decryptWithGrid(enc, msgType, grid);
         const msgDiv = document.getElementById('msgDiv');
+        msgDiv.textContent = ''; // never stack a second copy if the puzzle is solved again
         if(msgType == 0)
             msgDiv.textContent = code;
         else
@@ -868,16 +875,20 @@ const sketch = (p, id) => {
         resetTimer();
     }
 
-    function clearAllCache() {
-        // wipes saved progress for every puzzle, but not the player's own settings
-        const keep = localStorage.getItem(SETTINGS_KEY);
+    // Settings-panel button: deletes saved progress, timers and save points for every Pictogram
+    // puzzle on this device (keys starting with PROGRESS_PREFIX). Settings and other puzzles stay.
+    function clearPictogramProgress() {
+        const ok = confirm('Clear saved progress?\n\nThis deletes your progress, timers and save points for ALL Pictogram puzzles on this device. Your settings are kept. This cannot be undone.');
+        if(!ok)
+            return;
+        for(const key of Object.keys(localStorage))
+            if(key.startsWith(PROGRESS_PREFIX))
+                localStorage.removeItem(key);
         resetGrid();
-        localStorage.clear();
-        if(keep)
-            localStorage.setItem(SETTINGS_KEY, keep);
         hideMessage();
         resetTimer();
         updateCheckpointButton();
+        showPointStatus('Saved progress cleared.');
     }
 
     p.keyPressed = function() {
@@ -895,8 +906,6 @@ const sketch = (p, id) => {
             loadCheckpoint();
         } else if (p.key === 'R' && p.keyIsDown(p.SHIFT)) {
             reset();
-        } else if (p.key == 'Q' && p.keyIsDown(p.SHIFT)) {
-            clearAllCache();
         }
     }
 };

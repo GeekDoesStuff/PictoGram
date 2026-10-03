@@ -31,7 +31,7 @@ Open a Pictogram link and start filling in squares:
 
 The page remembers your progress, keeps a timer, and lets you save a checkpoint partway through so
 you can come back to it if you make a mistake later. Settings (theme, board colours, how empty
-squares are marked) are in the ⚙ Settings panel.
+squares are marked) and a "Clear saved progress…" button (asks first) are in the ⚙ Settings panel.
 
 ## Creating a puzzle
 
@@ -88,6 +88,7 @@ extends with picture-based puzzles. Licensed under GPL-3.0.
 - `dev-tools/test-secret.mjs` — tests which secret messages count as SteamGifts links, and that a
   giveaway code survives creating, solving and decrypting a puzzle.
 - `dev-tools/test-image.mjs` — tests the image-to-puzzle conversion on synthetic pictures.
+- `dev-tools/verify-link.mjs` — give it a puzzle link; it decodes and solves it and prints the size and hidden message.
 - `dev-tools/original-upstream/` — the original upstream files, kept for reference only.
 
 Run any test with `node dev-tools/<file>.mjs` from inside this folder.

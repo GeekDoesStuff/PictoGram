@@ -37,6 +37,7 @@ GoblinPuzzles/                  ← repo root (do not upload a folder literally 
 ├── notes/                      ← THIS folder. Kept out of the public GitHub upload deliberately.
 │   ├── overview.md             ← this file
 │   └── history.md              ← dated changelog, append-only
+├── PuzzleForge/                ← Goblin's Puzzle Forge: landing page (index.html) + the smaller puzzles, one subfolder each
 └── Pictogram/                  ← one puzzle = one top-level folder, same pattern for future ones
     ├── creator.html / index.html
     ├── js/ (creator.js, player.js, js/util/*)
@@ -91,14 +92,25 @@ onto those two generic states — it should be a very small file.
 
 ## Workflow conventions
 
+- Saved progress is stored under keys starting with the puzzle's own prefix (Pictogram: `PROGRESS_PREFIX` = `gdp-pictogram:` in `js/util/settings.js`). Clearing progress deletes only keys with that prefix, never `localStorage.clear()`. Migration of old unprefixed keys is deliberately NOT built (no real users yet); revisit near release.
 - Every puzzle's logic (solving, encoding/decoding, generation) has node-runnable tests under its
   own `dev-tools/` folder — no browser needed. Run with `node dev-tools/<file>.mjs` from inside
   the puzzle's folder, or run them all with `npm test` (Pictogram: `test-roundtrip`,
-  `test-secret`, `test-image`). `test-image` has a known intermittent failure — see the backlog.
+  `test-secret`, `test-image`). `test-image` has a known intermittent failure — see the backlog. `test-roundtrip` now prints how many cases it SKIPPED (repair gave up); `test-image` prints how many expected-hollow cases did not solve. "N/N ok" without the skipped count means nothing.
 - Logic that a page needs but that doesn't touch the DOM (e.g. `classifySecret` in
   `nono-utils.js`) goes in `js/util/` so a node test can cover it, with the page file only calling it.
 - UI changes should be smoke-tested in a headless browser before being called done, covering at
   least: the core create→share→solve flow, and any new interactive control added.
+- A UI check must assert what a person would actually *see* (computed `display`/visibility, a
+  non-zero size, or a screenshot), not just that the text exists in the DOM — `textContent` also
+  reads hidden elements. Include at least one control that is expected to fail (e.g. the previous
+  version), so the test is shown able to catch the problem. If a library had to be stubbed (no
+  network in the sandbox, so p5 usually is), say which one and what that leaves unverified, in the
+  handoff message and in `history.md`.
+- If the owner reports that a UI change "isn't showing", first have them hard-refresh
+  (Ctrl+Shift+R) or open the changed file's URL directly. A stale cached script, or a mix of old
+  and new files, hides new UI silently with no console errors (reproduced in the 2026-10-03
+  Claude_2 correction entry in `history.md`).
 - Changing something in `shared/` means re-checking every puzzle that depends on it, not just the
   one you were working on when you touched it.
 
@@ -203,3 +215,44 @@ words and clues — rather than the tool inferring everything from an image or r
 Train Tracks, and a "Chained mode" built last that links several puzzles into one sequence. A
 separate, harder project — Picture-to-Numberlink (the Pictogram approach applied to Piczle-style
 path puzzles) — is planned as its own thing, not part of this package.
+
+## Goblin's Puzzle Forge (decided 2026-10-03)
+
+`PuzzleForge/` is a separate folder with a landing page (`index.html`): the title and one selection
+box per puzzle, each leading into that puzzle's creation flow (same idea as Pictogram's creator).
+Boxes for puzzles that aren't ready are crossed out and marked "Not active yet"; puzzles being built
+show "In progress". Each puzzle has its own subfolder with its own `js/` and `dev-tools/`; the Forge
+uses `shared/` for look and feel. Pictogram stays in its own folder and is linked from the Forge for now.
+
+**Standalone vs. packaged is decided per puzzle at release:** some puzzles ship standalone, some
+inside the Forge, some both. The earlier "each puzzle is its own self-contained static site" still holds
+(every puzzle must work without the Forge); the Forge is an additional front door, not a replacement.
+
+Order and status: Pictogram (live) · Hashi (logic, tests, first-draft creator + player pages as of v5; `PuzzleForge/Hashi/`), Akari (in progress, not built as of v5) · Nurikabe, Skyscrapers, Binairo, Futoshiki/KenKen, Slitherlink, Crossword generator, Train Tracks
+(not started) · Chained mode (last). Hashi variants (hex grid, pre-placed bridges) are backlog.
+
+## Secret messages: every puzzle gets one (owner decision, 2026-10-03)
+
+Every puzzle in the project, Forge or not, lets its creator hide a secret message that is revealed on
+solving. The method is Pictogram's: the message is XOR-encrypted with the puzzle's solved state and the
+whole thing (puzzle + encrypted message) is encoded in the link, so nothing is stored anywhere and the
+message can only be read by solving. Link formats stay versioned. Only SteamGifts links are ever
+clickable (see "Secret messages and links"). Each new puzzle must reuse this, not invent its own.
+
+## Sandbox limits (read before claiming anything was tested)
+
+Agents here usually have NO network, no real p5/Bootstrap from a CDN, no real phone, and no real
+mouse/touch input. So: state at the start what the sandbox lacks; never claim a library version was
+tested unless the handoff says where that file came from; if something was stubbed, say what that leaves
+unchecked; don't promise a capability before trying it once. (Added after a Bootstrap 5.3.2 vs shipped
+5.3.3 claim in `history.md` that couldn't be traced.)
+
+### Hashi (v5)
+`PuzzleForge/Hashi/`: `js/hashi-logic.js` (nearest-neighbour candidate bridges, solver that counts solutions up to
+2, random generator that only returns uniquely solvable puzzles, link codec), `creator.html`, `play.html`,
+`dev-tools/test-hashi.mjs` (`npm test` inside that folder). Link = versioned bitstring shuffled to base-64-ish
+characters; the secret message is XOR-locked with the solution bits (2 bits per candidate bridge), as in Pictogram.
+Draft limits: plain-text secrets only (no SteamGifts), no saved progress/timer/settings panel/undo, creator
+generates synchronously, sizes 5-14. **Duplication to resolve:** `Hashi/js/util/bitseq.js` and `math-utils.js` are
+COPIES of Pictogram's (Hashi is the second consumer, so by the second-consumer test they should move to `shared/`);
+not done because it means editing Pictogram's imports. Owner decision needed.
