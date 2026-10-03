@@ -9,7 +9,7 @@ export const MIN_LONGER_SIDE = 8;   // longer side of the grid must be at least 
 
 export const PRESETS = {
     silhouette: { label: 'Silhouette (characters, monsters, logos)', sharpen: 0,   maxBlend: 0.3 },
-    lineart:    { label: 'Line art (drawings, outlines)',            sharpen: 0.3, maxBlend: 0.65 },
+    lineart:    { label: 'Line art (drawings, outlines)',            sharpen: 0.2, maxBlend: 0.85 },
     photo:      { label: 'Photo (shaded pictures)',                  sharpen: 0.6, maxBlend: 0 }
 };
 
@@ -77,6 +77,35 @@ function silhouetteInk(src) {
 function darknessInk(src) {
     if (!src.cache.dark) src.cache.dark = src.gray.map(v => 255 - v);
     return src.cache.dark;
+}
+
+// Sobel edge magnitude: how strongly a pixel sits on an outline (0..255, higher = stronger edge).
+// Used for the Line art style so real outlines are kept instead of guessing them from brightness.
+function edgeInk(src) {
+    if (src.cache.edge) return src.cache.edge;
+    const { w, h } = src;
+    // Light blur first (as real edge detectors do) so fine texture/noise doesn't register as
+    // "edges" everywhere; a genuine outline survives a small blur, speckle noise does not.
+    const radius = Math.max(1, Math.round(Math.min(w, h) / 220));
+    const smooth = boxBlur(src.gray, w, h, radius);
+    const out = new Float32Array(w * h);
+    const at = (x, y) => smooth[clamp(y, 0, h - 1) * w + clamp(x, 0, w - 1)];
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            const gx = -at(x - 1, y - 1) - 2 * at(x - 1, y) - at(x - 1, y + 1)
+                       + at(x + 1, y - 1) + 2 * at(x + 1, y) + at(x + 1, y + 1);
+            const gy = -at(x - 1, y - 1) - 2 * at(x, y - 1) - at(x + 1, y - 1)
+                       + at(x - 1, y + 1) + 2 * at(x, y + 1) + at(x + 1, y + 1);
+            out[y * w + x] = Math.sqrt(gx * gx + gy * gy);
+        }
+    }
+    // Normalize against a robust (not absolute) max so a few extreme-contrast pixels
+    // don't wash out every softer edge.
+    const sorted = Float32Array.from(out).sort();
+    const hi = sorted[Math.floor(sorted.length * 0.995)] || 1;
+    for (let i = 0; i < out.length; i++) out[i] = Math.min(255, (out[i] / hi) * 255);
+    src.cache.edge = out;
+    return out;
 }
 
 // Which preset fits this picture best
@@ -177,6 +206,8 @@ export function buildInk(src, crop, cols, rows, opts = {}) {
     if (preset === 'silhouette') {
         ink = silhouetteInk(src);
         if (!ink) preset = 'photo'; // no transparency / plain background: fall back
+    } else if (preset === 'lineart') {
+        ink = edgeInk(src); // real outlines, instead of guessing them from brightness alone
     }
     if (!ink) ink = darknessInk(src);
 

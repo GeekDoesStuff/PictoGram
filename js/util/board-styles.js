@@ -1,4 +1,9 @@
-// Colour schemes for the puzzle board. Colours are [r,g,b]; hover is [r,g,b,alpha].
+// Pictogram-specific: colour schemes for the nonogram board (filled cells, X/dot marks).
+// This is NOT shared with other Goblin Does Puzzles projects — it bakes in nonogram concepts
+// (a cell's fill state, a "mark" colour for crossed-out empty cells). A future puzzle with
+// different board semantics should get its own palette module, possibly built on a shared
+// "named colour theme" concept in shared/ if one emerges, rather than reusing this file.
+// Colours are [r,g,b]; hover is [r,g,b,alpha].
 // A filled cell = its checker colour mixed with `fillMix` by `fillT` (same for marked cells).
 
 const CLASSIC_LIGHT = {

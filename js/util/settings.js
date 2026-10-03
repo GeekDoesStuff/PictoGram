@@ -1,39 +1,23 @@
-// Player/creator settings saved in the browser (theme, board style, mark symbol).
-const KEY = 'pictogram-settings';
-const DEFAULTS = { theme: null, board: 'classic', mark: 'x' }; // theme null = follow the device
+// Pictogram's own settings: wraps the shared Goblin Does Puzzles settings store with
+// Pictogram's storage key and defaults (board style, mark symbol, timer visibility).
+import { createSettingsStore, currentTheme as gdpCurrentTheme, applyTheme as gdpApplyTheme, setupThemeButton as gdpSetupThemeButton } from '../../shared/gdp-settings.js';
 
-export function loadSettings() {
-    try {
-        return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') };
-    } catch (e) {
-        return { ...DEFAULTS };
+const KEY = 'gdp-pictogram-settings';
+const OLD_KEY = 'pictogram-settings'; // settings saved before the shared-module rename
+const DEFAULTS = { theme: null, board: 'classic', mark: 'x', showTimer: true }; // theme null = follow the device
+
+// One-time migration: if someone has settings saved under the old key and none yet under
+// the new one, carry them over so switching to the shared module doesn't reset anyone's choices.
+try {
+    if (localStorage.getItem(OLD_KEY) !== null && localStorage.getItem(KEY) === null) {
+        localStorage.setItem(KEY, localStorage.getItem(OLD_KEY));
     }
-}
+} catch (e) { /* storage blocked: ignore */ }
 
-export function saveSettings(patch) {
-    const merged = { ...loadSettings(), ...patch };
-    try { localStorage.setItem(KEY, JSON.stringify(merged)); } catch (e) { /* storage blocked: ignore */ }
-    return merged;
-}
+const store = createSettingsStore(KEY, DEFAULTS);
 
-export function currentTheme() {
-    const s = loadSettings();
-    if (s.theme === 'light' || s.theme === 'dark') return s.theme;
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-}
-
-export function applyTheme() {
-    document.documentElement.setAttribute('data-bs-theme', currentTheme());
-}
-
-// Wires a button that switches between light and dark. onChange(theme) is called after each switch.
-export function setupThemeButton(button, onChange = () => {}) {
-    const label = () => { button.textContent = currentTheme() === 'dark' ? '☾ Dark theme' : '☀ Light theme'; };
-    label();
-    button.addEventListener('click', () => {
-        saveSettings({ theme: currentTheme() === 'dark' ? 'light' : 'dark' });
-        applyTheme();
-        label();
-        onChange(currentTheme());
-    });
-}
+export const loadSettings = store.load;
+export const saveSettings = store.save;
+export const currentTheme = () => gdpCurrentTheme(store);
+export const applyTheme = () => gdpApplyTheme(store);
+export const setupThemeButton = (button, onChange) => gdpSetupThemeButton(store, button, onChange);

@@ -1,11 +1,16 @@
 #msgDiv {
     display: none;
-}
-
-#nonoDiv {
-    overflow-x: auto;
+    text-align: center;
 }
 
 #timerDiv {
     font-variant-numeric: tabular-nums;
+}
+
+#pointStatus {
+    font-size: 0.85rem;
+}
+
+.gdp-instructions-core li {
+    margin-bottom: 0.15rem;
 }

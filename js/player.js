@@ -107,6 +107,13 @@ const sketch = (p, id) => {
             saveSettings({mark: markStyle});
         });
 
+        const showTimerCheck = document.getElementById('showTimerCheck');
+        showTimerCheck.checked = settings.showTimer !== false;
+        showTimerCheck.addEventListener('change', () => {
+            saveSettings({showTimer: showTimerCheck.checked});
+            renderTimer();
+        });
+
         applyTheme();
         setupThemeButton(document.getElementById('themeBtn'), applyPalette);
         applyPalette();
@@ -165,6 +172,10 @@ const sketch = (p, id) => {
         const el = document.getElementById('timerDiv');
         if(!el)
             return;
+        if(loadSettings().showTimer === false) {
+            el.textContent = '';
+            return;
+        }
         if(ended)
             el.textContent = 'Solved in ' + formatTime(timerElapsed);
         else if(!timerStarted)
@@ -218,6 +229,61 @@ const sketch = (p, id) => {
         document.getElementById("zoomInBtn").addEventListener("click", zoomIn);
         document.getElementById("zoomOutBtn").addEventListener("click", zoomOut);
         document.getElementById("resetBtn").addEventListener("click", reset);
+        document.getElementById("saveBtn").addEventListener("click", saveCheckpoint);
+        document.getElementById("loadBtn").addEventListener("click", loadCheckpoint);
+        updateCheckpointButton();
+    }
+
+    // ----- save points: a manual snapshot separate from the continuous autosave -----
+
+    function checkpointKey() {
+        return id + '#checkpoint';
+    }
+
+    function updateCheckpointButton() {
+        const loadBtn = document.getElementById('loadBtn');
+        if(loadBtn)
+            loadBtn.disabled = !localStorage.getItem(checkpointKey());
+    }
+
+    function showPointStatus(text) {
+        const el = document.getElementById('pointStatus');
+        if(!el)
+            return;
+        el.textContent = text;
+        clearTimeout(showPointStatus.timer);
+        showPointStatus.timer = setTimeout(() => { el.textContent = ''; }, 2500);
+    }
+
+    function saveCheckpoint() {
+        if(ended)
+            return;
+        const encodedState = nono.encodeGameState(grid, gridHorHints, gridVerHints);
+        try {
+            localStorage.setItem(checkpointKey(), JSON.stringify({state: encodedState, time: Math.round(timerElapsed), started: timerStarted}));
+        } catch(e) { /* storage blocked */ }
+        updateCheckpointButton();
+        showPointStatus('Save point saved.');
+    }
+
+    function loadCheckpoint() {
+        let saved;
+        try {
+            saved = JSON.parse(localStorage.getItem(checkpointKey()) || 'null');
+        } catch(e) { saved = null; }
+        if(!saved)
+            return;
+
+        resetGrid();
+        nono.decodeGameState(grid, gridHorHints, gridVerHints, saved.state);
+        timerElapsed = saved.time || 0;
+        timerStarted = !!saved.started;
+        timerLast = performance.now();
+        saveTimer();
+        saveState();
+        checkSolution();
+        renderTimer();
+        showPointStatus('Save point loaded.');
     }
 
     function resize() {
@@ -794,6 +860,7 @@ const sketch = (p, id) => {
             localStorage.setItem('pictogram-settings', keep);
         hideMessage();
         resetTimer();
+        updateCheckpointButton();
     }
 
     p.keyPressed = function() {
@@ -805,6 +872,10 @@ const sketch = (p, id) => {
             zoomIn();
         } else if (p.keyCode === p.DOWN_ARROW || p.key === '-' ) {
             zoomOut();
+        } else if (p.key === 'S' && p.keyIsDown(p.SHIFT)) {
+            saveCheckpoint();
+        } else if (p.key === 'L' && p.keyIsDown(p.SHIFT)) {
+            loadCheckpoint();
         } else if (p.key === 'R' && p.keyIsDown(p.SHIFT)) {
             reset();
         } else if (p.key == 'Q' && p.keyIsDown(p.SHIFT)) {

@@ -1,34 +1,59 @@
 # Pictogram
 
-Create a nonogram (picross / griddler) from your own black-and-white picture, with a secret
-message that appears when the puzzle is solved. Share it with a link. Includes a timer, light/dark
-theme, several board colour styles, and a choice of X or dot for marked-empty cells.
+Turn any picture into a nonogram (also known as picross or griddler) — a logic puzzle where
+filling in the right squares reveals an image. Solve it, and a hidden message appears.
 
-Based on [sg-nonograms](https://github.com/RosimInc/sg-nonograms) by RosimInc. Licensed under GPL-3.0.
+**[Try the creator →](creator.html)**
 
-## Pages
-- `creator.html` — build a puzzle from an image (or a random pattern) and get a shareable link.
-- `index.html` — play a puzzle from a link.
+## What it does
 
-## How picture puzzles work
-1. The image is loaded and processed entirely in the browser; it is never uploaded or stored.
-2. You crop to the subject (or use "Fit to subject" for images with a transparent or plain background).
-3. A style (Silhouette / Line art / Photo) turns the picture into an "ink" map, and a black-amount
-   slider picks how much of the grid is filled.
-4. A solver checks the puzzle can be found by logic alone with exactly one solution. If not, the
-   fewest, least visible cells are adjusted (shown in orange in the preview). This runs in a Web
-   Worker (`js/util/repair-worker.js`) so the page stays responsive on large grids.
-5. The picture is encoded into the link (`js/util/id-parser.js`, format version 3, with optional
-   run-length compression) together with the encrypted secret message.
+- **Make a puzzle from your own picture.** Upload an image, crop to the part you want, and
+  Pictogram works out the puzzle for you. Everything happens in your browser — your picture is
+  never uploaded or stored anywhere.
+- **Every puzzle has exactly one solution**, solvable through pure logic, no guessing required.
+- **Share it with a single link.** No accounts, no server, no database — the whole puzzle lives in
+  the link itself.
+- **A secret message is revealed when the puzzle is solved**, set by whoever created it.
 
-## Hosting
-Any static host works. On GitHub: upload the contents of this folder to the repo root (not inside
-a subfolder), then Settings → Pages → Deploy from a branch → `main` / root.
-The creator is then at `https://<user>.github.io/<repo>/creator.html`.
+## Playing
 
-## Development
-- `dev-tools/test-roundtrip.mjs` — link format tests (all versions, including legacy links).
-- `dev-tools/test-image.mjs` — image-to-puzzle pipeline tests on synthetic pictures.
-- `dev-tools/original-upstream/` — the original upstream files kept for reference; not used by the site.
+Open a Pictogram link and start filling in squares:
+- Left-click (or tap) to fill a square.
+- Right-click (or long-press) to mark a square as empty.
+- Match each row and column to its numbers — groups of filled squares need at least one empty
+  square between them, same as a normal nonogram.
 
-Run with `node dev-tools/<file>.mjs`.
+The page remembers your progress, keeps a timer, and lets you save a checkpoint partway through so
+you can come back to it if you make a mistake later. Settings (theme, board colours, how empty
+squares are marked) are in the ⚙ Settings panel.
+
+## Creating a puzzle
+
+Open `creator.html`, upload a picture, and adjust a few options:
+- **Crop** to the subject so the puzzle isn't wasted on background.
+- **Style** — Silhouette for flat shapes/logos, Line art for outlines, Photo for shaded images.
+- **Grid size**, up to 60×60.
+- **Secret message**, shown once the puzzle is solved.
+
+Pictogram checks the result is solvable with a single, unambiguous solution before handing you the
+link, adjusting a few squares if needed so it is.
+
+## Hosting your own copy
+
+Pictogram is a static site — no server or build step needed. Upload the contents of this folder to
+the root of a GitHub repository (not inside a subfolder), then turn on
+**Settings → Pages → Deploy from a branch → `main` / root**. Your creator will be at
+`https://<your-username>.github.io/<repo-name>/creator.html`.
+
+## Credits
+
+Built on [sg-nonograms](https://github.com/RosimInc/sg-nonograms) by RosimInc, which this project
+extends with picture-based puzzles. Licensed under GPL-3.0.
+
+## For developers
+
+- `dev-tools/test-roundtrip.mjs` — tests the puzzle-link format, including older link versions.
+- `dev-tools/test-image.mjs` — tests the image-to-puzzle conversion on synthetic pictures.
+- `dev-tools/original-upstream/` — the original upstream files, kept for reference only.
+
+Run any test with `node dev-tools/<file>.mjs`.

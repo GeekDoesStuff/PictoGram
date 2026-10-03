@@ -1,0 +1,98 @@
+/* Goblin Does Puzzles — shared design system (page shell, panels, toolbar, drawer look). */
+/* Generic across puzzle projects; nothing here knows about nonograms specifically. */
+/* Light/dark is set on <html data-bs-theme="..."> by a project's settings module. */
+
+:root, html[data-bs-theme="dark"] {
+    --gdp-bg: #16181d;
+    --gdp-fg: #f1f1f1;
+    --gdp-muted: #a9adb5;
+    --gdp-panel: #20232a;
+    --gdp-panel-border: #343841;
+    --gdp-accent: #4f8cff;
+    --gdp-radius: 0.6rem;
+}
+html[data-bs-theme="light"] {
+    --gdp-bg: #f3f4f6;
+    --gdp-fg: #1b1d22;
+    --gdp-muted: #5b606a;
+    --gdp-panel: #ffffff;
+    --gdp-panel-border: #dde1e6;
+    --gdp-accent: #2f6fed;
+}
+
+body {
+    background-color: var(--gdp-bg);
+    color: var(--gdp-fg);
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Page shell: comfortable max width, centered, consistent breathing room */
+.gdp-page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
+}
+
+.gdp-header {
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+.gdp-header h1 {
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.1rem;
+}
+.gdp-header .gdp-subtitle {
+    color: var(--gdp-muted);
+    font-size: 0.95rem;
+}
+
+.gdp-panel {
+    background: var(--gdp-panel);
+    border: 1px solid var(--gdp-panel-border);
+    border-radius: var(--gdp-radius);
+}
+.gdp-muted { color: var(--gdp-muted); }
+
+/* Toolbar: groups of related buttons that wrap cleanly on narrow screens */
+.gdp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem 0.6rem;
+    margin-bottom: 1rem;
+}
+.gdp-toolbar .btn-group {
+    flex: 0 0 auto;
+}
+
+/* Centers the puzzle board; scrolls horizontally on narrow screens instead of overflowing the page */
+.gdp-board-wrap {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    padding: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.gdp-section-title {
+    font-weight: 700;
+    margin-top: 1.25rem;
+    margin-bottom: 0.4rem;
+}
+.gdp-section-title:first-child { margin-top: 0; }
+
+.gdp-hint-btn {
+    background: none;
+    border: none;
+    color: var(--gdp-muted);
+    padding: 0.1rem 0.3rem;
+    line-height: 1;
+}
+.gdp-hint-btn:hover { color: var(--gdp-fg); }
+
+@media (max-width: 420px) {
+    .gdp-page { padding: 1rem 0.6rem 2.5rem; }
+    .gdp-header h1 { font-size: 1.6rem; }
+}

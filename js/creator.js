@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("numRows").addEventListener("change", () => onSizeChanged("rows"));
 
     $("fitBtn").addEventListener("click", fitToSubject);
-    $("resetCropBtn").addEventListener("click", () => { if (state.src) setCrop(fullCrop()); });
+    $("resetCropBtn").addEventListener("click", () => { if (state.src) setCrop(fullCrop(), false, "whole"); });
     setupCropDrag();
     setupPasteAndDrop();
     applyMode();
@@ -156,6 +156,7 @@ function loadBlob(file) {
         state.src.origW = nw;
         state.src.origH = nh;
         state.crop = fullCrop();
+        state.cropKind = "whole";
         state.wantedLonger = 25;
         state.preset = img.detectPreset(state.src);
         $("preset").value = state.preset;
@@ -168,7 +169,7 @@ function loadBlob(file) {
         state.inkKey = "";
         $("imageControls").style.display = "block";
         $("presetNote").textContent = presetNote();
-        setCrop(state.crop, true);
+        setCrop(state.crop, true, "whole");
     };
     image.onerror = () => {
         URL.revokeObjectURL(url);
@@ -191,14 +192,23 @@ function presetNote() {
 
 // ---------- crop ----------
 
-function setCrop(crop, resetSize = false) {
+function setCrop(crop, resetSize = false, kind = "custom") {
     state.crop = crop;
+    state.cropKind = kind;
     state.autoAmount = true;
     if (state.preset !== "silhouette") state.autoInvertPending = true;
     state.inkKey = "";
     updateSizes(resetSize);
     drawCrop();
+    updateCropStatus();
     schedulePreview();
+}
+
+function updateCropStatus() {
+    const el = $("cropStatus");
+    if (!el) return;
+    const label = { whole: "Using the whole image.", fit: "Cropped to fit the detected subject.", custom: "Using a custom crop." }[state.cropKind] || "";
+    el.textContent = label;
 }
 
 function fitToSubject() {
@@ -209,7 +219,7 @@ function fitToSubject() {
         return;
     }
     showError("");
-    setCrop(box);
+    setCrop(box, false, "fit");
 }
 
 function drawCrop(temp = null) {
@@ -270,7 +280,7 @@ function setupCropDrag() {
         const r = rectOf(dragStart, pos(ev));
         dragStart = null;
         const minPx = Math.max(MIN_CROP_PX, Math.round(MIN_CROP_PX * state.src.scale));
-        if (r.w >= minPx && r.h >= minPx) setCrop(r);
+        if (r.w >= minPx && r.h >= minPx) setCrop(r, false, "custom");
         else drawCrop();
     };
     canvas.addEventListener("pointerup", end);

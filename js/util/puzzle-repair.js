@@ -10,7 +10,7 @@ const gridKey = grid => grid.map(r => r.join('')).join('|');
 // Returns { grid, changed: [[r,c],...], solved }
 export function makeUniquelySolvable(grid, confidence = null, opts = {}) {
     const cells = grid.length * grid[0].length;
-    const deadline = Date.now() + (opts.maxMs ?? Math.min(30000, 8000 + cells * 3));
+    const deadline = Date.now() + (opts.maxMs ?? Math.min(35000, 9000 + cells * 4));
     let best = null;
     for (let attempt = 0; attempt < (opts.attempts ?? 8) && Date.now() < deadline; attempt++) {
         const res = repairOnce(grid, confidence, opts, deadline);
