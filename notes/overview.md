@@ -93,6 +93,35 @@ onto those two generic states — it should be a very small file.
 - Changing something in `shared/` means re-checking every puzzle that depends on it, not just the
   one you were working on when you touched it.
 
+## How to work on this project (read this before starting a task)
+
+The owner (GoblinDoesStuff) will hand you a task directly — build something, fix something, answer
+a question about the code. Before and after doing that:
+
+- **Read this file and `history.md` first**, every time, even if you were given this project
+  before — `history.md` may have moved forward since. Don't ask the owner to re-explain anything
+  already answered in either file.
+- **If something in this project is unclear or seems wrong, say exactly what and where** — the
+  specific file, line, or sentence, and what's ambiguous or contradictory about it. "This section
+  is confusing" is not useful feedback and will just get asked to be redone; "the rename test in
+  the shared-vs-specific section doesn't say what to do if renaming is *possible* but awkward" is
+  something that can actually be fixed. The same goes for reporting bugs you hit: exact
+  reproduction steps, not "it didn't work."
+- **Log what you did in `notes/history.md` when you're done**, not just in your reply to the
+  owner — the owner is coordinating multiple agents across sessions and `history.md` is the one
+  place that record survives. Use the existing format: `## YYYY-MM-DD — <YourName> — <summary>`,
+  a few bullet points of what changed and why, and anything you left unresolved. Pick a name for
+  yourself in the log distinct from other agents' entries (e.g. `Claude_1` is already in use —
+  don't reuse it as a different agent/model).
+- **If you change something that affects the conventions in this file** (a new naming pattern, a
+  new shared module, a changed workflow step) — update `overview.md` itself in the same task,
+  don't leave it for someone else to notice it's stale. This file is meant to always reflect
+  current reality, not a snapshot of when it was written.
+- **Don't restructure or rename things on your own initiative** (moving files, renaming the
+  `gdp-` prefix, changing the folder layout) without it being part of what you were actually
+  asked to do — this project is shared across multiple agents' work, and an unrequested structural
+  change breaks everyone else's assumptions, not just your own task.
+
 ## Pictogram — current state
 
 A full picture-to-nonogram pipeline: upload an image (processed entirely client-side, never

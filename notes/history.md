@@ -73,3 +73,13 @@ Entries before 2026-10-03 are backfilled from conversation history and dated app
 - The rest of the 2026-10-03 backlog discussion (assist-menu system, hint system, survival mode,
   sound toggle, puzzle gallery, difficulty indicator, custom titles) is listed in
   `notes/overview.md` under Pictogram's backlog — not yet built.
+
+## 2026-10-03 — Claude_1 — Added agent workflow section to overview.md
+- Owner pointed out that expectations I'd only stated in chat (report confusion precisely with
+  file/location, log work to `history.md`, keep `overview.md` current) weren't actually written
+  into the file itself, so an agent reading it cold would never see them.
+- Added a "How to work on this project" section to `overview.md` covering: read this file and
+  history.md first every time; report problems with specific location + detail, not vague
+  descriptions; log completed work to `history.md` in the established format and pick a distinct
+  agent name; update `overview.md` itself when a change affects its conventions; don't restructure
+  or rename things outside the actual assigned task, since the project is shared across agents.
